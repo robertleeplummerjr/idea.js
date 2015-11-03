@@ -1,0 +1,27 @@
+{
+  "name": "idea.js",
+  "version": "0.0.0",
+  "homepage": "https://github.com/robertleeplummerjr/idea.js",
+  "authors": [
+    "Robert Plummer <robertleeplummerjr@gmail.com>"
+  ],
+  "description": "artificial intelligence problem solver",
+  "main": "idea.js",
+  "keywords": [
+    "ai",
+    "artificial",
+    "intelligence",
+    "problem",
+    "solve",
+    "solver",
+    "turk"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
