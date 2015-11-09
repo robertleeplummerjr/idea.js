@@ -1,17 +1,17 @@
-(function(brain) {
+brain.Wisdom = (function(brain) {
   "use strict";
 
   /**
    *
    * @param {number[]} weights
    * @param {number} maxPerturbation
-   * @param {number} [fitness]
+   * @param {number} [rewards]
    * @constructor
    */
-  function Wisdom(weights, maxPerturbation, fitness) {
+  function Wisdom(weights, maxPerturbation, rewards) {
     this.weights = weights;
     this.maxPerturbation = maxPerturbation;
-    this.fitness = fitness || 0;
+    this.rewards = rewards || 0;
   }
 
   Wisdom.prototype = {
@@ -31,9 +31,13 @@
       return this;
     },
     clone: function() {
-      return new brain.Wisdom(this.weights.slice(0), this.maxPerturbation, this.fitness);
+      return new brain.Wisdom(this.weights.slice(0), this.maxPerturbation, this.rewards);
+    },
+    reward: function() {
+      this.rewards++;
+      return this;
     }
   };
 
-  brain.Wisdom = Wisdom;
+  return Wisdom;
 })(brain);

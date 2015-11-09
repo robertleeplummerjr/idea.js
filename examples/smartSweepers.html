@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <title>smartSweepers.js</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.3.1/darkly/bootstrap.min.css">
+
+  <style>
+    h1,
+    h5,
+    #main {
+      margin-left: auto;
+      margin-right: auto;
+      width: 850px;
+    }
+    #teaser,#footer {
+      z-index: 2;
+      margin-left: auto;
+      margin-right: auto;
+      width: 540px;
+      position: relative;
+    }
+    h1,h5 {
+      text-align: center;
+    }
+    #stats-table {
+      table-layout: fixed;
+      float:right;
+      width: 350px;
+    }
+    #stats-table th {
+      width: 33%
+      text-align: center;
+    }
+    /*animations*/
+    #main {
+      opacity: 0.00001;
+      height: 0;
+      -webkit-transition-delay: 5s; /* Safari */
+      transition-delay: 5s;
+      transition: 5s;
+      z-index: 1;
+      position: relative;
+    }
+    #footer {
+      opacity: 0.00001;
+      transition-duration: 5s;
+    }
+    #main.loaded {
+      opacity: 1;
+      height: 465px;
+    }
+    #footer.loaded {
+      opacity: 1;
+    }
+  </style>
+  <script src="../src/Matrix2d.js"></script>
+  <script src="../src/Point.js"></script>
+
+  <script src="../src/brain/base.js"></script>
+  <script src="../src/brain/Hive.js"></script>
+  <script src="../src/brain/NeuralNet.js"></script>
+  <script src="../src/brain/Neuron.js"></script>
+  <script src="../src/brain/NeuronLayer.js"></script>
+  <script src="../src/brain/Wisdom.js"></script>
+
+  <script src="../src/SmartSweepers/base.js"></script>
+  <script src="../src/SmartSweepers/Controller.js"></script>
+  <script src="../src/SmartSweepers/Mine.js"></script>
+  <script src="../src/SmartSweepers/Sweeper.js"></script>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+</head>
+<body onload="
+	setTimeout(function() {
+		document.getElementById('footer').className += ' loaded';
+	}, 2000);
+	//animation
+	setTimeout(function() {
+		var main = document.getElementById('main');
+		main.style.overflow = 'hidden';
+		main.className += ' loaded';
+		setTimeout(function() {
+			main.style.overflow = '';
+		}, 5000);
+	}, 4000);
+">
+<h1>smartSweepers.js</h1>
+<h5>your computer can think... & even reason</h5>
+<div id="main" class="well">
+  <canvas id="game-canvas" width="400" height="400"></canvas>
+  <div id="fast-animation" src="animation.html" style="display: none;" title="Reasoning..."></div>
+  <table id="stats-table">
+    <thead>
+    <tr>
+      <th>Generation</th>
+      <th>Best</th>
+      <th>Average</th>
+    </tr>
+    </thead>
+  </table>
+  <br>
+		<span>
+			<input type="checkbox" id="step-fast"/><label for="step-fast">Fast</label>
+			&nbsp;&nbsp;
+			<input type="checkbox" id="view-paths"/><label for="view-paths">View Paths</label>
+		</span>
+</div>
+<a href="https://github.com/robertleeplummerjr/smartSweepers.js">
+  <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+</a>
+<div id="teaser">
+  <h3>Reason</h3>
+  <blockquote>
+    <i>verb</i><br>
+    think, understand, and form judgments by a process of logic.
+  </blockquote>
+</div>
+<div id="footer">
+  <p>
+    <i>What is happening?</i><br>
+    This may not look like much at first, but give it 10 or more minutes, or enable the fast mode for a bit.
+    This is a new type of software based around the ability <i>to think & even reason</i> called <i>Artificial Intelligence</i>.<br>
+    The Mine Sweepers are given information:
+  </p>
+  <ul>
+    <li>nearest mines</li>
+    <li>nearest Mine Sweeper</li>
+    <li>to seek mines for a reward</li>
+  </ul>
+  <p>But they are not given instruction on:</p>
+  <ul>
+    <li>how to get their reward</li>
+    <li>how to work with their fellow Mine Sweepers</li>
+  </ul>
+  <p>The Mine Sweepers have control over:</p>
+  <ul>
+    <li>speed</li>
+    <li>steering</li>
+  </ul>
+  <p>What they do next is up to them...</p>
+  <p>
+    <i>Why is this profound?</i><br>
+    AI algorithms are reusable in many fields including:
+    games, automotive design, space travel, DNA research, cancer detection.
+    Give a computer a goal.  It will reason on how to find it.
+  </p>
+</div>
+</body>
+<script>
+  var canvas = document.getElementById('game-canvas'),
+      ctx = canvas.getContext('2d'),
+      stepFast = document.getElementById('step-fast'),
+      viewPaths = document.getElementById('view-paths'),
+      fastAnimation = document.getElementById('fast-animation'),
+      controller = new smartSweepers.Controller(ctx, {
+        framesPerSecond: 60,
+        maxTurnRate: 0.3,
+        maxSpeed: 10,
+        sweeperScale: 5,
+        numMines: 40,
+        numSweepers: 30,
+        numTicks: 2000,
+        mineScale: 2,
+        crossoverRate: 0.7,
+        mutationRate: 0.1,
+        maxPerturbation: 0.3,
+        numElite: 4,
+        numCopiesElite: 1
+      }),
+      generation = controller.generations;
+  $(fastAnimation)
+      .load(fastAnimation.getAttribute('src'))
+      .css({
+        'position': 'absolute',
+        'left': $(canvas).position().left,
+        'top': $(canvas).position().top
+      })
+      .width(canvas.clientWidth)
+      .height(canvas.clientHeight);
+  controller.setFastRender(stepFast.checked);
+  if (stepFast.checked) {
+    canvas.style.visibility = 'hidden';
+    fastAnimation.style.display = '';
+  } else {
+    canvas.style.visibility = '';
+    fastAnimation.style.display = 'none';
+  }
+  stepFast.onchange = function() {
+    controller.setFastRender(this.checked);
+    if (this.checked) {
+      canvas.style.visibility = 'hidden';
+      fastAnimation.style.display = '';
+    } else {
+      canvas.style.visibility = '';
+      fastAnimation.style.display = 'none';
+    }
+  };
+  controller.setViewPaths(viewPaths.checked);
+  viewPaths.onchange = function() {
+    controller.setViewPaths(this.checked);
+  };
+  function animate() {
+    controller.update();
+    controller.render();
+    if (generation != controller.generations) {
+      generation = controller.generations;
+      plotStats();
+    }
+    setTimeout(function(){
+      requestAnimationFrame(function() {
+        if (controller.fastRender) {
+          quick();
+        } else {
+          animate();
+        }
+      });
+    }, 0);
+  }
+  function quick() {
+    controller.update();
+    if (generation != controller.generations) {
+      generation = controller.generations;
+      controller.plotStats();
+    }
+    setTimeout(function() {
+      if (controller.fastRender) {
+        quick();
+      } else {
+        animate();
+      }
+    }, 0);
+  }
+  animate();
+  function plotStats() {
+    if (controller.generations < 1) return;
+    var generationEl = document.createElement('td'),
+        bestFitnessEl = document.createElement('td'),
+        avgFitnessEl = document.createElement('td'),
+        rowEl = document.createElement('tr'),
+        tableEl = document.getElementById('stats-table');
+    generationEl.innerHTML = controller.generations.toString();
+    bestFitnessEl.innerHTML = controller.hive.bestRewards;
+    avgFitnessEl.innerHTML = controller.hive.avgRewards.toFixed(2);
+    rowEl.appendChild(generationEl);
+    rowEl.appendChild(bestFitnessEl);
+    rowEl.appendChild(avgFitnessEl);
+    if (tableEl !== null) {
+      tableEl.appendChild(rowEl);
+    }
+  }
+</script>
+</html>

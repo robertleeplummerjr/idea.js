@@ -1,4 +1,4 @@
-(function(SmartSweepers, brain) {
+smartSweepers.Sweeper = (function(smartSweepers, brain) {
 	function clamp(arg, min, max) {
 		if (arg < min) {
 			arg = min;
@@ -25,13 +25,12 @@
 		});
 
     this.params = params;
-		this.position = new SmartSweepers.Vector2d(Math.random() * params.windowWidth, Math.random() * params.windowHeight);
-		this.direction = new SmartSweepers.Vector2d();
-		this.rotation = Math.random() * params.twoPi;
+		this.position = new Point(Math.random() * params.windowWidth, Math.random() * params.windowHeight);
+		this.direction = new Point();
+		this.rotation = Math.random() * Math.PI * 2;
 		this.speed = 0;
 		this.lTrack = 0.16;
 		this.rTrack = 0.16;
-		this.fitness = 0;
 		this.scale = params.sweeperScale;
 		this.iClosestMine = 0;
 	}
@@ -45,17 +44,15 @@
 		 * @param {Object} mines sweepers 'look at' vector (x, y)
 		 * @returns {boolean}
 		 */
-		update: function (mines, sweepers) {
+		update: function(mines, sweepers) {
 			//this will store all the inputs for the NN
 			var inputs = [],
 
-			//get vector to closest mine
-				closestMineRaw = this.getClosestMine(mines),
-        closestSweeperRaw = this.getClosestSweeper(sweepers),
-
-			//normalise it
-				closestMine = SmartSweepers.vector2dNormalize(closestMineRaw),
-				closestSweeper = SmartSweepers.vector2dNormalize(closestSweeperRaw);
+				//get closest mine
+				closestMine = this.getClosestMine(mines)
+					.normalize(),
+        closestSweeper = this.getClosestSweeper(sweepers)
+					.normalize();
 
 			this.closestMine = closestMine;
       this.closestSweeper = closestSweeper;
@@ -126,70 +123,88 @@
 			return true;
 		},
 
-		// Where does vector Spoints come from?
-		worldTransform: function (sweeperVerts) {
-			var mat = new SmartSweepers.Matrix2d();
-			mat = mat.scale(this.scale, this.scale);
-			mat = mat.rotate(this.rotation);
-			mat = mat.translate(this.position.x, this.position.y);
-			return mat.transformPoints(sweeperVerts);
+		worldTransform: function() {
+      var points = [
+          {x: -1, y: -1},
+          {x: -1, y: 1},
+          {x: -0.5, y: 1},
+          {x: -0.5, y: -1},
+
+          {x: 0.5, y: -1},
+          {x: 1, y: -1},
+          {x: 1, y: 1},
+          {x: 0.5, y: 1},
+
+          {x: -0.5, y: -0.5},
+          {x: 0.5, y: -0.5},
+
+          {x: -0.5, y: 0.5},
+          {x: -0.25, y: 0.5},
+          {x: -0.25, y: 1.75},
+          {x: 0.25, y: 1.75},
+          {x: 0.25, y: 0.5},
+          {x: 0.5, y: 0.5}
+        ];
+
+			return (new Matrix2d())
+        .scale(this.scale, this.scale)
+        .rotate(this.rotation)
+			  .translate(this.position.x, this.position.y)
+        .transformPoints(points);
 		},
 
 
-		getClosestMine: function (mines) {
-			var closestMineDist = 99999;
-			var closestMine = null;
-			for (var i = 0; i < mines.length; i++) {
-				var distToMine = SmartSweepers.vector2dLength(SmartSweepers.vector2dSub(mines[i], this.position));
+		getClosestMine: function(mines) {
+			var closestMineDist = 99999,
+					closestMine = null,
+					i = 0,
+          mine,
+					distToMine;
+
+			for (; i < mines.length; i++) {
+        mine = mines[i];
+        distToMine = mine
+					.sub(this.position)
+					.root();
+
 				if (distToMine < closestMineDist) {
 					closestMineDist = distToMine;
-					closestMine = SmartSweepers.vector2dSub(this.position, mines[i]);
+					closestMine = Point.sub(this.position, mine);
 					this.iClosestMine = i;
 				}
 			}
 			return closestMine;
 		},
 
-    getClosestSweeper: function (sweepers) {
-      var closestSweeperDist = 99999;
-      var closestSweeper = null;
-      for (var i = 0; i < sweepers.length; i++) {
+    getClosestSweeper: function(sweepers) {
+      var closestSweeperDist = 99999,
+      	closestSweeper = null,
+				i = 0;
+      for (; i < sweepers.length; i++) {
         if (this === sweepers[i]) continue;
 
-        var dist = SmartSweepers.vector2dLength(SmartSweepers.vector2dSub(sweepers[i].position, this.position));
+        var dist = Point.length(Point.sub(sweepers[i].position, this.position));
         if (dist < closestSweeperDist) {
           closestSweeperDist = dist;
-          closestSweeper = SmartSweepers.vector2dSub(this.position, sweepers[i].position);
+          closestSweeper = Point.sub(this.position, sweepers[i].position);
           this.iClosestSweeper = i;
         }
       }
       return closestSweeper;
     },
 
-		checkForMine: function (mines, size) {
-			var distToMine = SmartSweepers.vector2dSub(this.position, mines[this.iClosestMine]);
-			if (SmartSweepers.vector2dLength(distToMine) < (size + 5)) {
+		checkForMine: function(mines, size) {
+			var distToMine = Point.sub(this.position, mines[this.iClosestMine]);
+			if (Point.length(distToMine) < (size + 5)) {
 				return this.iClosestMine;
 			}
 			return -1;
 		},
 
-		reset: function () {
-			this.position = new SmartSweepers.Vector2d(Math.random() * this.params.windowWidth, Math.random() * this.params.windowHeight);
-			this.fitness = 0;
+		reset: function() {
+			this.position = new Point(Math.random() * this.params.windowWidth, Math.random() * this.params.windowHeight);
+			this.brain.wisdom.rewards = 0;
 			this.rotation = Math.random() * this.params.twoPi;
-		},
-
-		incrementFitness: function () {
-			this.fitness++;
-		},
-
-		getFitness: function () {
-			return this.fitness;
-		},
-
-		getNumWeights: function () {
-			return this.brain.getNumWeights();
 		}
 	};
 
@@ -203,5 +218,5 @@
 		neuralNetPerturbation: 0.3
 	};
 
-	SmartSweepers.Sweeper = Sweeper;
-})(SmartSweepers, brain);
+  return Sweeper;
+})(smartSweepers, brain);

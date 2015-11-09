@@ -1,4 +1,4 @@
-(function(brain) {
+brain.NeuralNet = (function(brain) {
 	"use strict";
 
 	function NeuralNet(params) {
@@ -9,6 +9,7 @@
 		this.activationResponse = params.activationResponse;
 		this.hiddenLayerNeuronCount = params.hiddenLayerNeuronCount;
 		this.maxPerturbation = params.maxPerturbation;
+		this.goal = params.goal;
 		this.layers = [];
 		this.wisdom = null;
 
@@ -54,7 +55,7 @@
 					max = this.getNumWeights();
 
 			for (; i < max; i++) {
-				this.weights.push(Math.random() - Math.random());
+				weights.push(Math.random() - Math.random());
 			}
 
 			this.wisdom = new brain.Wisdom(weights, this.maxPerturbation);
@@ -64,11 +65,11 @@
 		},
 
     reward: function() {
-      this.wisdom.fitness++;
+      this.wisdom.reward();
       return this;
     },
 		/**
-		 * returns a vector containing the weights
+		 * returns weights
 		 * @returns {Array}
 		 */
 		getWeights: function() {
@@ -97,12 +98,10 @@
 		},
 
 		/**
-		 * given a vector of doubles this function replaces the weights in the NN
-		 * with the new values
+		 * replaces the weights in the NN with the new values
 		 * @param weights
 		 */
 		putWeights: function(weights) {
-
 			var cWeight = 0,
 				layer,
 				neuron,
@@ -222,6 +221,10 @@
 				}
 			}
 
+			if (this.goal !== undefined) {
+				this.goal();
+			}
+
 			return outputs;
 		},
 
@@ -230,5 +233,5 @@
 		}
 	};
 
-	brain.NeuralNet = NeuralNet;
+  return NeuralNet;
 })(brain);

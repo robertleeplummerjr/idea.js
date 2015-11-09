@@ -1,4 +1,4 @@
-var SmartSweepers = (function() {
+var smartSweepers = (function() {
 	"use strict";
 	return {};
 })();

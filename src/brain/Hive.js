@@ -1,9 +1,6 @@
-(function(brain) {
+brain.Hive = (function(brain) {
   "use strict";
 
-  Array.prototype.random = function() {
-    return this[Math.floor(Math.random() * (this.length - 1))];
-  };
   /**
    *
    * @param {function} initType
@@ -25,10 +22,10 @@
     this.eliteCount = eliteCount;
     this.eliteCopiesCount = eliteCopiesCount;
     this.crossoverRate = crossoverRate;
-    this.totalFitness = 0;
-    this.bestFitness = 0;
-    this.avgFitness = 0;
-    this.lowestFitness = Hive.defaults.worstFitness;
+    this.totalRewards = 0;
+    this.bestRewards = 0;
+    this.avgRewards = 0;
+    this.lowestRewards = Hive.defaults.worstRewards;
     this.bestWisdom = null;
 
     var i,
@@ -57,8 +54,8 @@
           new1.weights[i] = existing1.weights[i];
           new2.weights[i] = existing2.weights[i];
         }
-        new1.fitness = existing1.fitness;
-        new2.fitness = existing2.fitness;
+        new1.rewards = existing1.rewards;
+        new2.rewards = existing2.rewards;
       } else {
         // Pick a crossover point.
         crossoverPoint = Math.floor((Math.random() * (this.weightCount - 1)));
@@ -75,8 +72,8 @@
         }
       }
 
-      new1.fitness = existing1.fitness;
-      new2.fitness = existing2.fitness;
+      new1.rewards = existing1.rewards;
+      new2.rewards = existing2.rewards;
 
       return this;
     },
@@ -87,18 +84,18 @@
      * @returns {brain.Wisdom}
      */
     select: function() {
-      var slice = Math.random() * this.totalFitness,
+      var slice = Math.random() * this.totalRewards,
           item,
           chosen = null,
-          currentFitness = 0,
+          currentRewards = 0,
           i = 0;
 
-      // Keep adding fitness until it is above the slice,
+      // Keep adding rewards until it is above the slice,
       // then we stop and take the current wisdom
       for (; i < this.count; i++) {
         item = this.collection[i];
-        currentFitness += item.wisdom.fitness;
-        if (currentFitness >= slice) {
+        currentRewards += item.wisdom.rewards;
+        if (currentRewards >= slice) {
           chosen = item;
           break;
         }
@@ -131,44 +128,44 @@
      * @returns {Hive}
      */
     calcStats: function() {
-      this.totalFitness = 0;
-      var bestFitness = 0,
-          fitness,
-          lowestFitness = this.lowestFitness,
+      this.totalRewards = 0;
+      var bestRewards = 0,
+          rewards,
+          lowestRewards = this.lowestRewards,
           i;
 
       for (i = 0; i < this.count; i++) {
-        fitness = this.collection[i].wisdom.fitness;
-        if (fitness > bestFitness) {
-          bestFitness = fitness;
-          this.bestFitness = bestFitness;
+        rewards = this.collection[i].wisdom.rewards;
+        if (rewards > bestRewards) {
+          bestRewards = rewards;
+          this.bestRewards = bestRewards;
           this.bestWisdom = this.wisdoms[i];
         }
 
-        if (this.wisdoms[i].fitness < lowestFitness) {
-          lowestFitness = this.wisdoms[i].fitness;
-          this.lowestFitness = lowestFitness;
+        if (this.wisdoms[i].rewards < lowestRewards) {
+          lowestRewards = this.wisdoms[i].rewards;
+          this.lowestRewards = lowestRewards;
         }
-        this.totalFitness += this.wisdoms[i].fitness;
+        this.totalRewards += this.wisdoms[i].rewards;
       }
 
-      this.avgFitness = this.totalFitness / this.count;
+      this.avgRewards = this.totalRewards / this.count;
       return this;
     },
     reset: function() {
-      this.totalFitness = 0;
-      this.bestFitness = 0;
-      this.lowestFitness = Hive.defaults.worstFitness;
-      this.avgFitness = 0;
+      this.totalRewards = 0;
+      this.bestRewards = 0;
+      this.lowestRewards = Hive.defaults.worstRewards;
+      this.avgRewards = 0;
       return this;
     },
     learn: function() {
       this
           .reset()
           .collection.sort(function(a, b) {
-            if (a.brain.fitness > b.brain.fitness) {
+            if (a.brain.rewards > b.brain.rewards) {
               return 1;
-            } else if (a.brain.fitness < b.brain.fitness) {
+            } else if (a.brain.rewards < b.brain.rewards) {
               return -1;
             } else {
               return 0;
@@ -200,8 +197,8 @@
   };
 
   Hive.defaults = {
-    worstFitness: 9999999
+    worstRewards: 9999999
   };
 
-  brain.Hive = Hive;
+  return Hive;
 })(brain);
