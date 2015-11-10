@@ -1,6 +1,9 @@
 brain.Hive = (function(brain) {
   "use strict";
 
+  function randomResult(array) {
+    return array[Math.floor(Math.random() * (array.length - 1))];
+  }
   /**
    *
    * @param {function} initType
@@ -27,6 +30,8 @@ brain.Hive = (function(brain) {
     this.avgRewards = 0;
     this.lowestRewards = Hive.defaults.worstRewards;
     this.bestWisdom = null;
+    this.elites = null;
+    this.nonElites = null;
 
     var i,
         collection = this.collection = [];
@@ -39,43 +44,37 @@ brain.Hive = (function(brain) {
   Hive.prototype = {
     /**
      *
-     * @param {brain.Wisdom} existing1
-     * @param {brain.Wisdom} existing2
-     * @param {brain.Wisdom} new1
-     * @param {brain.Wisdom} new2
+     * @param {brain.Wisdom} teacher
      * @returns {Hive}
      */
-    transferWisdom: function(existing1, existing2, new1, new2) {
-      var i,
-          crossoverPoint;
+    teach: function(teacher) {
+      var i = 0,
+          student = new brain.Wisdom([], this.maxPerturbation),
+          crossoverPoint,
+          weights = teacher.weights,
+          max = weights.length;
 
       if (Math.random() > this.crossoverRate) {
-        for (i = 0; i < existing1.weights.length; i++) {
-          new1.weights[i] = existing1.weights[i];
-          new2.weights[i] = existing2.weights[i];
+        for (; i < max; i++) {
+          student.weights[i] = teacher.weights[i];
         }
-        new1.rewards = existing1.rewards;
-        new2.rewards = existing2.rewards;
       } else {
         // Pick a crossover point.
         crossoverPoint = Math.floor((Math.random() * (this.weightCount - 1)));
 
         // Swap weights
-        for (i = 0; i < crossoverPoint; i++) {
-          new1.weights[i] = existing1.weights[i];
-          new2.weights[i] = existing2.weights[i];
+        for (; i < crossoverPoint; i++) {
+          student.weights[i] = teacher.weights[i];
         }
 
-        for (i = crossoverPoint; i < existing1.weights.length; i++) {
-          new1.weights[i] = existing1.weights[i];
-          new2.weights[i] = existing2.weights[i];
+        for (i = crossoverPoint; i < max; i++) {
+          student.weights[i] = teacher.weights[i];
         }
       }
 
-      new1.rewards = existing1.rewards;
-      new2.rewards = existing2.rewards;
+      student.hypothesize();
 
-      return this;
+      return student;
     },
 
     // Maybe switch this out with Tournament selection?
@@ -88,13 +87,14 @@ brain.Hive = (function(brain) {
           item,
           chosen = null,
           currentRewards = 0,
+          max = this.count,
           i = 0;
 
       // Keep adding rewards until it is above the slice,
       // then we stop and take the current wisdom
-      for (; i < this.count; i++) {
+      for (; i < max; i++) {
         item = this.collection[i];
-        currentRewards += item.wisdom.rewards;
+        currentRewards += item.brain.wisdom.rewards;
         if (currentRewards >= slice) {
           chosen = item;
           break;
@@ -105,22 +105,33 @@ brain.Hive = (function(brain) {
 
     /**
      *
-     * @param {number} [bestCount]
-     * @param {number} [copiesCount]
+     * @param {number} [eliteCounts]
      * @returns {*}
      */
-    getElites: function(bestCount, copiesCount) {
-      bestCount = bestCount || this.eliteCount;
-      copiesCount = copiesCount || this.eliteCopiesCount;
+    setElites: function(eliteCount) {
+      eliteCount = eliteCount || this.eliteCount;
 
-      var best = [],
-          i;
-      while (bestCount--) {
-        for (i = 0; i < copiesCount; i++) {
-          best.push(this.collection[(this.count - 1) - bestCount]);
-        }
+      var item,
+          collection = this.collection,
+          elites = [],
+          nonElites = [],
+          i = this.count;
+
+      while (i-- > eliteCount) {
+        item = collection[i];
+        item.brain.wisdom.rewards = 0;
+        elites.push(item);
       }
-      return best;
+      this.nonElites = nonElites;
+
+      while (i-- > 0) {
+        item = collection[i];
+        item.brain.wisdom.rewards = 0;
+        elites.push(item);
+      }
+      this.elites = elites;
+
+      return this;
     },
 
     /**
@@ -131,22 +142,27 @@ brain.Hive = (function(brain) {
       this.totalRewards = 0;
       var bestRewards = 0,
           rewards,
+          wisdom,
+          item,
+          max = this.count,
           lowestRewards = this.lowestRewards,
-          i;
+          i = 0;
 
-      for (i = 0; i < this.count; i++) {
-        rewards = this.collection[i].wisdom.rewards;
+      for (; i < max; i++) {
+        item = this.collection[i];
+        wisdom = item.brain.wisdom;
+        rewards = wisdom.rewards;
         if (rewards > bestRewards) {
           bestRewards = rewards;
           this.bestRewards = bestRewards;
-          this.bestWisdom = this.wisdoms[i];
+          this.bestWisdom = wisdom;
         }
 
-        if (this.wisdoms[i].rewards < lowestRewards) {
-          lowestRewards = this.wisdoms[i].rewards;
+        if (rewards < lowestRewards) {
+          lowestRewards = rewards;
           this.lowestRewards = lowestRewards;
         }
-        this.totalRewards += this.wisdoms[i].rewards;
+        this.totalRewards += rewards;
       }
 
       this.avgRewards = this.totalRewards / this.count;
@@ -157,9 +173,10 @@ brain.Hive = (function(brain) {
       this.bestRewards = 0;
       this.lowestRewards = Hive.defaults.worstRewards;
       this.avgRewards = 0;
+
       return this;
     },
-    learn: function() {
+    sort: function() {
       this
           .reset()
           .collection.sort(function(a, b) {
@@ -172,27 +189,32 @@ brain.Hive = (function(brain) {
             }
           });
 
-      this.calcStats();
-      var elites = this.getElites(),
-          existing1,
-          existing2,
-          new1,
-          new2;
+      return this;
+    },
+    learn: function() {
+      this
+          .sort()
+          .calcStats()
+          .setElites();
 
-      while (elites.length < this.count) {
-        existing1 = this.select().wisdom;
-        existing2 = this.select().wisdom;
-        new1 = new brain.Wisdom([], this.maxPerturbation);
-        new2 = new brain.Wisdom([], this.maxPerturbation);
-        this.transferWisdom(existing1, existing2, new1, new2);
-        new1.hypothesize();
-        new2.hypothesize();
+      var elites = this.elites,
+          elite,
+          nonElites = this.nonElites,
+          nonElite,
+          teacher,
+          student,
+          max = nonElites.length,
+          i = 0;
 
-        elites.push(new1);
-        elites.push(new2);
+      for (; i < max; i++) {
+        elite = randomResult(elites) || this.select();
+        teacher = elite.brain.wisdom;
+        nonElite = nonElites[i];
+        student = this.teach(teacher);
+        nonElite.brain.wisdom = student;
       }
 
-      return this.collection = elites;
+      return this;
     }
   };
 
