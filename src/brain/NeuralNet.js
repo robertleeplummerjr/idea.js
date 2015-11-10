@@ -219,12 +219,12 @@ brain.NeuralNet = (function(brain) {
         }
       }
 
-      if (this.goal !== undefined) {
-        this.wisdom.rewards += this.goal();
-      }
-
       if (this.action !== undefined) {
         this.action(outputs);
+      }
+
+      if (this.goal !== undefined) {
+        this.wisdom.rewards += this.goal();
       }
 
       return this;
