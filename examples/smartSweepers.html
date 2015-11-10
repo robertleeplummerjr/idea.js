@@ -168,6 +168,7 @@
         numCopiesElite: 1
       }),
       day = controller.day;
+
   $(fastAnimation)
       .load(fastAnimation.getAttribute('src'))
       .css({
@@ -177,7 +178,9 @@
       })
       .width(canvas.clientWidth)
       .height(canvas.clientHeight);
+
   controller.setFastRender(stepFast.checked);
+
   if (stepFast.checked) {
     canvas.style.visibility = 'hidden';
     fastAnimation.style.display = '';
@@ -185,6 +188,7 @@
     canvas.style.visibility = '';
     fastAnimation.style.display = 'none';
   }
+
   stepFast.onchange = function() {
     controller.setFastRender(this.checked);
     if (this.checked) {
@@ -195,17 +199,23 @@
       fastAnimation.style.display = 'none';
     }
   };
+
   controller.setViewPaths(viewPaths.checked);
+
   viewPaths.onchange = function() {
     controller.setViewPaths(this.checked);
   };
+
   function animate() {
-    controller.update();
-    controller.render();
+    controller
+        .update()
+        .render();
+
     if (day != controller.day) {
       day = controller.day;
       plotStats();
     }
+
     setTimeout(function(){
       requestAnimationFrame(function() {
         if (controller.fastRender) {
@@ -216,6 +226,7 @@
       });
     }, 0);
   }
+
   function quick() {
     controller.update();
     if (day != controller.day) {
@@ -230,7 +241,9 @@
       }
     }, 0);
   }
+
   animate();
+
   function plotStats() {
     if (controller.day < 1) return;
     var generationEl = document.createElement('td'),
@@ -239,8 +252,8 @@
         rowEl = document.createElement('tr'),
         tableEl = document.getElementById('stats-table');
     generationEl.innerHTML = controller.day.toString();
-    bestFitnessEl.innerHTML = controller.hive.bestRewards;
-    avgFitnessEl.innerHTML = controller.hive.avgRewards.toFixed(2);
+    bestFitnessEl.innerHTML = controller.bestMines.toString();
+    avgFitnessEl.innerHTML = controller.avgMines.toFixed(2);
     rowEl.appendChild(generationEl);
     rowEl.appendChild(bestFitnessEl);
     rowEl.appendChild(avgFitnessEl);

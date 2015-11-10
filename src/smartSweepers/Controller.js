@@ -22,13 +22,14 @@ smartSweepers.Controller = (function(smartSweepers) {
     this.numMines = params.numMines;
     this.numWeightsForNN = 0;
 
-    // Keep Per generation
-    this.avgRewards = [];
+    // Keep Per day
+    this.avgMinesHistory = [];
+    this.avgMines = 0;
 
-    // Keep Per generation
-    this.bestRewards = [];
+    // Keep Per days
+    this.bestMinesHistory = [];
+    this.bestMines = 0;
 
-    // Cycles per generation? What does this mean?
     this.ticks = 0;
 
     // Current day;
@@ -67,13 +68,11 @@ smartSweepers.Controller = (function(smartSweepers) {
 
     Controller.prototype = {
       render: function() {
-        this
+        return this
             .drawBackground()
             .drawMines()
             .drawSweepers()
             .drawViewPaths();
-
-        return this;
       },
       drawBackground: function() {
         var ctx = this.ctx;
@@ -187,16 +186,25 @@ smartSweepers.Controller = (function(smartSweepers) {
             sweeper.move(this.mines, this.hive.collection);
           }
         } else {
-          this.avgRewards.push(this.hive.avgRewards);
-          this.bestRewards.push(this.hive.bestRewards);
-
-          this.hive
-              .learn()
-              .beginNewDay();
-
-          this.ticks = 0;
+          this.beginNewDay();
         }
-        return true;
+
+        return this;
+      },
+
+      beginNewDay: function() {
+        this.hive.calcStats();
+        this.avgMinesHistory.push(this.avgMines = this.hive.avgRewards);
+        this.bestMinesHistory.push(this.bestMines = this.hive.bestRewards);
+
+        this.hive
+          .learn()
+          .resetStats();
+
+        this.day++;
+        this.ticks = 0;
+
+        return this;
       },
 
       getFastRender: function() {

@@ -79,12 +79,9 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
     this.closestMine = null;
   }
 
-  // Update SmartSweeper position using neural network
   Sweeper.prototype = {
     /**
-     * First we take sensor readings and feed these into the sweepers brain. We receive two outputs from the brain.. lTrack & rTrack.
-     * So given a force for each track we calculate the resultant rotation
-     * and acceleration and apply to current velocity vector.
+     * move a sweeper and update it's location relative to the field it is in
      * @param {smartSweepers.Mine[]} mines
      * @param {smartSweepers.Sweeper[]} sweepers
      * @returns {boolean}

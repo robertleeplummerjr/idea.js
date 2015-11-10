@@ -105,7 +105,7 @@ brain.Hive = (function(brain) {
 
     /**
      *
-     * @param {number} [eliteCounts]
+     * @param {number} [eliteCount]
      * @returns {*}
      */
     setElites: function(eliteCount) {
@@ -168,8 +168,7 @@ brain.Hive = (function(brain) {
       this.avgRewards = this.totalRewards / this.count;
       return this;
     },
-    beginNewDay: function() {
-      this.day++;
+    resetStats: function() {
       this.totalRewards = 0;
       this.bestRewards = 0;
       this.lowestRewards = Hive.defaults.worstRewards;
