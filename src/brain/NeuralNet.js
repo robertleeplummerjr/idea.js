@@ -9,7 +9,9 @@ brain.NeuralNet = (function(brain) {
     this.activationResponse = params.activationResponse;
     this.hiddenLayerNeuronCount = params.hiddenLayerNeuronCount;
     this.maxPerturbation = params.maxPerturbation;
+    this.sense = params.sense;
     this.goal = params.goal;
+    this.action = params.action;
     this.layers = [];
     this.wisdom = null;
 
@@ -153,10 +155,10 @@ brain.NeuralNet = (function(brain) {
       return weights;
     },
 
-    //run the neural network and get outputs
-    update: function(inputs) {
+    think: function() {
       //stores the resultant outputs from each layer
-      var outputs = [],
+      var inputs = this.sense ? this.sense() : [],
+          outputs = [],
           layer,
           neurons,
           neuron,
@@ -218,10 +220,14 @@ brain.NeuralNet = (function(brain) {
       }
 
       if (this.goal !== undefined) {
-        this.goal();
+        this.wisdom.rewards += this.goal();
       }
 
-      return outputs;
+      if (this.action !== undefined) {
+        this.action(outputs);
+      }
+
+      return this;
     },
 
     sigmoid: function(netInput, response) {

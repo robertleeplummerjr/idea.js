@@ -158,18 +158,16 @@
         framesPerSecond: 60,
         maxTurnRate: 0.3,
         maxSpeed: 10,
-        sweeperScale: 5,
         numMines: 40,
         numSweepers: 30,
         numTicks: 2000,
-        mineScale: 2,
         crossoverRate: 0.7,
         mutationRate: 0.1,
         maxPerturbation: 0.3,
         numElite: 4,
         numCopiesElite: 1
       }),
-      generation = controller.generations;
+      day = controller.day;
   $(fastAnimation)
       .load(fastAnimation.getAttribute('src'))
       .css({
@@ -204,8 +202,8 @@
   function animate() {
     controller.update();
     controller.render();
-    if (generation != controller.generations) {
-      generation = controller.generations;
+    if (day != controller.day) {
+      day = controller.day;
       plotStats();
     }
     setTimeout(function(){
@@ -220,8 +218,8 @@
   }
   function quick() {
     controller.update();
-    if (generation != controller.generations) {
-      generation = controller.generations;
+    if (day != controller.day) {
+      day = controller.day;
       controller.plotStats();
     }
     setTimeout(function() {
@@ -234,13 +232,13 @@
   }
   animate();
   function plotStats() {
-    if (controller.generations < 1) return;
+    if (controller.day < 1) return;
     var generationEl = document.createElement('td'),
         bestFitnessEl = document.createElement('td'),
         avgFitnessEl = document.createElement('td'),
         rowEl = document.createElement('tr'),
         tableEl = document.getElementById('stats-table');
-    generationEl.innerHTML = controller.generations.toString();
+    generationEl.innerHTML = controller.day.toString();
     bestFitnessEl.innerHTML = controller.hive.bestRewards;
     avgFitnessEl.innerHTML = controller.hive.avgRewards.toFixed(2);
     rowEl.appendChild(generationEl);

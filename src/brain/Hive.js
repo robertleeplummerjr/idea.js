@@ -168,7 +168,8 @@ brain.Hive = (function(brain) {
       this.avgRewards = this.totalRewards / this.count;
       return this;
     },
-    reset: function() {
+    beginNewDay: function() {
+      this.day++;
       this.totalRewards = 0;
       this.bestRewards = 0;
       this.lowestRewards = Hive.defaults.worstRewards;
@@ -177,17 +178,15 @@ brain.Hive = (function(brain) {
       return this;
     },
     sort: function() {
-      this
-          .reset()
-          .collection.sort(function(a, b) {
-            if (a.brain.rewards > b.brain.rewards) {
-              return 1;
-            } else if (a.brain.rewards < b.brain.rewards) {
-              return -1;
-            } else {
-              return 0;
-            }
-          });
+      this.collection.sort(function(a, b) {
+        if (a.brain.rewards > b.brain.rewards) {
+          return 1;
+        } else if (a.brain.rewards < b.brain.rewards) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
 
       return this;
     },

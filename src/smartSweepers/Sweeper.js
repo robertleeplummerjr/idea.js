@@ -12,7 +12,8 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
   }
 
   function Sweeper(params) {
-    var config = Sweeper.config;
+    var config = Sweeper.config,
+        self = this;
 
     this.brain = new brain.NeuralNet({
       bias: config.neuralNetBias,
@@ -21,18 +22,61 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
       hiddenLayerCount: config.neuralNetHiddenLayerCount,
       activationResponse: config.neuralNetActivationResponse,
       hiddenLayerNeuronCount: config.neuralNetHiddenLayerNeuronCount,
-      maxPerturbation: params.maxPerturbation
+      maxPerturbation: config.neuralNetPerturbation,
+      sense: function() {
+        var inputs = [],
+
+            //get closest mine
+            closestMine = self.closestMine.position.normalize(),
+
+            //get closest sweeper
+            closestSweeper = self.closestSweeper.position.normalize();
+
+        //add in vectors to closest mine
+        inputs.push(closestMine.x);
+        inputs.push(closestMine.y);
+
+        //add in vectors to the closest sweeper
+        inputs.push(closestSweeper.x);
+        inputs.push(closestSweeper.y);
+
+        //add in its direction
+        inputs.push(self.direction.x);
+        inputs.push(self.direction.y);
+
+        //add in its speed
+        inputs.push(self.speed);
+
+        return inputs;
+      },
+      goal: function() {
+        var hit = self.checkForMine();
+        if (hit) {
+          params.hit(self.closestMine);
+          return 1;
+        }
+        return 0;
+      },
+      action: function(movements) {
+        if (movements.length < Sweeper.config.neuralNetOutputCount) {
+          return;
+        }
+
+        //assign the outputs to the sweepers left & right tracks
+        self.lTrack = movements[0];
+        self.rTrack = movements[1];
+      }
     });
 
     this.params = params;
-    this.position = new Point(Math.random() * params.windowWidth, Math.random() * params.windowHeight);
+    this.position = new Point(Math.random() * params.fieldWidth, Math.random() * params.fieldHeight);
     this.direction = new Point();
     this.rotation = Math.random() * Math.PI * 2;
     this.speed = 0;
     this.lTrack = 0.16;
     this.rTrack = 0.16;
-    this.scale = params.sweeperScale;
-    this.iClosestMine = 0;
+    this.scale = Sweeper.config.scale;
+    this.closestMine = null;
   }
 
   // Update SmartSweeper position using neural network
@@ -41,88 +85,54 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
      * First we take sensor readings and feed these into the sweepers brain. We receive two outputs from the brain.. lTrack & rTrack.
      * So given a force for each track we calculate the resultant rotation
      * and acceleration and apply to current velocity vector.
-     * @param {Object} mines sweepers 'look at' vector (x, y)
+     * @param {smartSweepers.Mine[]} mines
+     * @param {smartSweepers.Sweeper[]} sweepers
      * @returns {boolean}
      */
-    update: function(mines, sweepers) {
-      //this will store all the inputs for the NN
-      var inputs = [],
+    move: function(mines, sweepers) {
+      this
+          .updateClosestMine(mines)
+          .updateClosestSweeper(sweepers);
 
-        //get closest mine
-        closestMine = this.getClosestMine(mines).position
-          .normalize(),
-        closestSweeper = this.getClosestSweeper(sweepers).position
-          .normalize();
-
-      this.closestMine = closestMine;
-      this.closestSweeper = closestSweeper;
-
-      //add in vector to closest mine
-      inputs.push(closestMine.x);
-      inputs.push(closestMine.y);
-
-      inputs.push(closestSweeper.x);
-      inputs.push(closestSweeper.y);
-
-      //add in sweepers look at vector
-      inputs.push(this.direction.x);
-      inputs.push(this.direction.y);
-
-      inputs.push(this.speed);
-
-      //update the brain and get feedback
-      var output = this.brain.update(inputs);
-
-      //make sure there were no errors in calculating the
-      //output
-      if (output.length < Sweeper.config.neuralNetOutputCount) {
-        return false;
-      }
-
-      //assign the outputs to the sweepers left & right tracks
-      this.lTrack = output[0];
-      this.rTrack = output[1];
+      this.brain.think();
 
       //calculate steering forces
-      var rotForce = this.lTrack - this.rTrack;
-
-      //clamp rotation
-      rotForce = clamp(rotForce, -this.params.maxTurnRate, this.params.maxTurnRate);
-
-      // Rotate sweeper
-      this.rotation += rotForce;
-
-      this.speed = (this.lTrack + this.rTrack);
+      var params = this.params,
+          rotForce = this.lTrack - this.rTrack,
+          //clamp rotation
+          rotForceClamped = clamp(rotForce, -params.maxTurnRate, params.maxTurnRate),
+          // Rotate sweeper
+          rotation = this.rotation += rotForceClamped,
+          speed = this.speed = (this.lTrack + this.rTrack),
+          direction = this.direction,
+          position = this.position;
 
       //update Look At
-      this.direction.x = -Math.sin(this.rotation);
-      this.direction.y = Math.cos(this.rotation);
+      direction.x = -Math.sin(rotation);
+      direction.y = Math.cos(rotation);
 
       //update position
-      this.position.x += this.speed * this.direction.x;
-      this.position.y += this.speed * this.direction.y;
+      position.x += speed * direction.x;
+      position.y += speed * direction.y;
 
       //wrap around window limits
-      // Make sure position is not out of the window
-      if (this.position.x > this.params.windowWidth) {
-        this.position.x = 0;
+      // Make sure position is not out of the field
+      if (position.x > params.fieldWidth) {
+        position.x = 0;
       }
 
-      if (this.position.x < 0) {
-        this.position.x = this.params.windowWidth;
+      if (position.x < 0) {
+        position.x = params.fieldWidth;
       }
 
-      if (this.position.y > this.params.windowHeight) {
-        this.position.y = 0;
+      if (position.y > params.fieldHeight) {
+        position.y = 0;
       }
 
-      if (this.position.y < 0) {
-        this.position.y = this.params.windowHeight;
+      if (position.y < 0) {
+        position.y = params.fieldHeight;
       }
-
-      return true;
     },
-
     worldTransform: function() {
       var points = [
           {x: -1, y: -1},
@@ -154,61 +164,52 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
     },
 
 
-    getClosestMine: function(mines) {
+    updateClosestMine: function(mines) {
       var closestMineDist = 99999,
-          closestMine = null,
           i = 0,
           mine,
           distToMine;
 
       for (; i < mines.length; i++) {
         mine = mines[i];
-        distToMine = mine.position
-          .sub(this.position)
-          .root();
+        distToMine = this.distance(mine);
 
         if (distToMine < closestMineDist) {
           closestMineDist = distToMine;
-          closestMine = mine;
-          this.iClosestMine = i;
+          this.closestMine = mine;
         }
       }
-      return closestMine;
+
+      return this;
     },
 
-    getClosestSweeper: function(sweepers) {
+    updateClosestSweeper: function(sweepers) {
       var closestSweeperDist = 99999,
-        closestSweeper = null,
-        i = 0;
-      for (; i < sweepers.length; i++) {
-        if (this === sweepers[i]) continue;
+          max = sweepers.length,
+          sweeper,
+          dist,
+          i = 0;
 
-        var dist = sweepers[i].position.distance(this.position);
+      for (; i < max; i++) {
+        sweeper = sweepers[i];
+        if (this === sweeper) continue;
+
+        dist = sweeper.distance(this);
         if (dist < closestSweeperDist) {
           closestSweeperDist = dist;
-          closestSweeper = sweepers[i];
-          this.iClosestSweeper = i;
+          this.closestSweeper = sweeper;
         }
       }
-      return closestSweeper;
+      return this;
     },
 
     distance: function(entity) {
       return this.position.distance(entity.position);
     },
 
-    checkForMine: function(mines, size) {
-      var distToMine = this.distance(mines[this.iClosestMine]);
-      if (distToMine < (size + 5)) {
-        return this.iClosestMine;
-      }
-      return -1;
-    },
-
-    reset: function() {
-      this.position = new Point(Math.random() * this.params.windowWidth, Math.random() * this.params.windowHeight);
-      this.brain.wisdom.rewards = 0;
-      this.rotation = Math.random() * Math.PI * 2;
+    checkForMine: function() {
+      var distToMine = this.distance(this.closestMine);
+      return (distToMine < (smartSweepers.Mine.config.scale + 5));
     }
   };
 
@@ -219,7 +220,15 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
     neuralNetHiddenLayerCount: 1,
     neuralNetHiddenLayerNeuronCount: 6,
     neuralNetActivationResponse: 1,
-    neuralNetPerturbation: 0.3
+    neuralNetPerturbation: 0.3,
+    scale: 5
+  };
+
+  Sweeper.defaultSettings = {
+    hit: null,
+    fieldHeight: 1,
+    fieldWidth: 1,
+    maxTurnRate: 1
   };
 
   return Sweeper;

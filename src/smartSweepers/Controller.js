@@ -4,7 +4,8 @@ smartSweepers.Controller = (function(smartSweepers) {
   function Controller(ctx, params) {
     var key,
         i,
-        defaults = Controller.defaults;
+        defaults = Controller.defaults,
+        self = this;
 
     params = params || {};
 
@@ -30,8 +31,8 @@ smartSweepers.Controller = (function(smartSweepers) {
     // Cycles per generation? What does this mean?
     this.ticks = 0;
 
-    // Current generation;
-    this.generations = 0;
+    // Current day;
+    this.day = 0;
 
     // Dimension of window
     this.width = params.windowWidth;
@@ -42,7 +43,14 @@ smartSweepers.Controller = (function(smartSweepers) {
 
     this.hive = new brain.Hive(
       function() {
-        return new smartSweepers.Sweeper(params);
+        return new smartSweepers.Sweeper({
+          fieldWidth: params.windowWidth,
+          fieldHeight: params.windowHeight,
+          hit: function(mine) {
+            var i = self.mines.indexOf(mine);
+            self.mines[i] = new smartSweepers.Mine(Math.random() * self.width, Math.random() * self.height);
+          }
+        });
       },
       this.numSweepers,
       params.mutationRate,
@@ -59,13 +67,16 @@ smartSweepers.Controller = (function(smartSweepers) {
 
     Controller.prototype = {
       render: function() {
-        var i,
-            g,
-            ctx = this.ctx,
-            mineVerts,
-            sweeperVerts,
-            sweeper,
-            mine;
+        this
+            .drawBackground()
+            .drawMines()
+            .drawSweepers()
+            .drawViewPaths();
+
+        return this;
+      },
+      drawBackground: function() {
+        var ctx = this.ctx;
 
         ctx.clearRect(0, 0, this.params.windowWidth, this.params.windowHeight);
         ctx.beginPath();
@@ -73,21 +84,37 @@ smartSweepers.Controller = (function(smartSweepers) {
         ctx.fillStyle = 'rgb(32, 36, 45)';
         ctx.fill();
 
+        return this;
+      },
+      drawMines: function() {
+        var ctx = this.ctx,
+            i = 0,
+            max = this.numMines,
+            mineVerts,
+            g;
+
         ctx.beginPath();
-        for (i = 0; i < this.numMines; i++) {
+        for (; i < max; i++) {
           mineVerts = this.mines[i].worldTransform();
           ctx.moveTo(mineVerts[0].x, mineVerts[0].y);
           for (g = 1; g < mineVerts.length; g++) {
-              ctx.lineTo(mineVerts[g].x, mineVerts[g].y);
+            ctx.lineTo(mineVerts[g].x, mineVerts[g].y);
           }
           ctx.lineTo(mineVerts[0].x, mineVerts[0].y);
         }
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'rgb(140, 177, 120)';
         ctx.stroke();
+        return this;
+      },
+      drawSweepers: function() {
+        var i = 0,
+            max = this.numSweepers,
+            sweeperVerts,
+            g;
 
         ctx.beginPath();
-        for (i = 0; i < this.numSweepers; i++) {
+        for (;i < max; i++) {
           sweeperVerts = this.hive.collection[i].worldTransform();
 
           if (i == this.params.eliteCount) {
@@ -97,41 +124,48 @@ smartSweepers.Controller = (function(smartSweepers) {
             ctx.beginPath();
           }
 
-            // Draw left track of sweeper
-            ctx.moveTo(sweeperVerts[0].x, sweeperVerts[0].y);
-            for (g = 1; g < 4; ++g) {
-              ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
-            }
-            ctx.lineTo(sweeperVerts[0].x, sweeperVerts[0].y);
+          // Draw left track of sweeper
+          ctx.moveTo(sweeperVerts[0].x, sweeperVerts[0].y);
+          for (g = 1; g < 4; ++g) {
+            ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
+          }
+          ctx.lineTo(sweeperVerts[0].x, sweeperVerts[0].y);
 
-            // Draw right track of sweeper
-            ctx.moveTo(sweeperVerts[4].x, sweeperVerts[4].y);
-            for (g = 5; g < 8; ++g) {
-              ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
-            }
-            ctx.lineTo(sweeperVerts[4].x, sweeperVerts[4].y);
+          // Draw right track of sweeper
+          ctx.moveTo(sweeperVerts[4].x, sweeperVerts[4].y);
+          for (g = 5; g < 8; ++g) {
+            ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
+          }
+          ctx.lineTo(sweeperVerts[4].x, sweeperVerts[4].y);
 
-            // Draw rest of sweeper
-            ctx.moveTo(sweeperVerts[8].x, sweeperVerts[8].y);
-            ctx.lineTo(sweeperVerts[9].x, sweeperVerts[9].y);
+          // Draw rest of sweeper
+          ctx.moveTo(sweeperVerts[8].x, sweeperVerts[8].y);
+          ctx.lineTo(sweeperVerts[9].x, sweeperVerts[9].y);
 
-            ctx.moveTo(sweeperVerts[10].x, sweeperVerts[10].y);
+          ctx.moveTo(sweeperVerts[10].x, sweeperVerts[10].y);
 
-            for (g = 11; g < 16; ++g) {
-              ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
-            }
+          for (g = 11; g < 16; ++g) {
+            ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
+          }
         }
         ctx.lineWidth = 1;
         ctx.strokeStyle = 'rgb(123, 144, 164)';
         ctx.stroke();
+        return this;
+      },
+      drawViewPaths: function() {
+        var ctx = this.ctx,
+            i = 0,
+            max = this.numSweepers,
+            sweeper,
+            mine;
 
         if (this.viewPaths) {
           ctx.beginPath();
-          for (i = 0; i < this.numSweepers; i++) {
+          for (; i < max; i++) {
             sweeper = this.hive.collection[i];
-            if (sweeper.iClosestMine < 0) continue;
-            mine = this.mines[sweeper.iClosestMine];
-
+            if (sweeper.closestMine === null) continue;
+            mine = sweeper.closestMine;
             ctx.moveTo(sweeper.position.x, sweeper.position.y);
             ctx.lineTo(mine.position.x, mine.position.y);
           }
@@ -139,32 +173,28 @@ smartSweepers.Controller = (function(smartSweepers) {
           ctx.strokeStyle = 'rgb(255, 45, 3)';
           ctx.stroke();
         }
+        return this;
       },
 
       update: function() {
-        var i,
-            grabHit,
-            sweeper;
+        var i = 0,
+            sweeper,
+            max = this.numSweepers;
+
         if (this.ticks++ < this.params.numTicks) {
-          for (i = 0; i < this.numSweepers; i++) {
+          for (; i < max; i++) {
             sweeper = this.hive.collection[i];
-            if (!sweeper.update(this.mines, this.hive.collection)) {
-              console.log("Wrong amount of NN inputs!");
-              return false;
-            }
-            grabHit = sweeper.checkForMine(this.mines, this.params.mineScale);
-            if (grabHit >= 0) {
-              this.hive.collection[i].brain.wisdom.reward();
-              this.mines[grabHit] = new smartSweepers.Mine(Math.random() * this.width, Math.random() * this.height);
-            }
+            sweeper.move(this.mines, this.hive.collection);
           }
         } else {
           this.avgRewards.push(this.hive.avgRewards);
           this.bestRewards.push(this.hive.bestRewards);
-          this.hive.reset();
-          this.generations++;
+
+          this.hive
+              .learn()
+              .beginNewDay();
+
           this.ticks = 0;
-          this.hive.learn();
         }
         return true;
       },
@@ -200,11 +230,9 @@ smartSweepers.Controller = (function(smartSweepers) {
     framesPerSecond: 0,
     maxTurnRate: 0,
     maxSpeed: 0,
-    sweeperScale: 0,
     numSweepers: 0,
     numMines: 0,
     numTicks: 0,
-    mineScale: 0,
     crossoverRate: 0,
     mutationRate: 0,
     maxPerturbation: 0,

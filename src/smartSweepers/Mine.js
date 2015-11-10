@@ -13,14 +13,17 @@ smartSweepers.Mine = (function() {
       ];
 
       return (new Matrix2d())
-        .scale(Mine.config.mineScale, Mine.config.mineScale)
+        .scale(Mine.config.scale, Mine.config.scale)
         .translate(this.position.x, this.position.y)
         .transformPoints(points);
+    },
+    distance: function(entity) {
+      return this.position.distance(entity.position);
     }
   };
 
   Mine.config = {
-    mineScale: 2
+    scale: 2
   };
 
   return Mine;
