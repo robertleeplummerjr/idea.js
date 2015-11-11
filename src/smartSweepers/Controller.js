@@ -110,18 +110,21 @@ smartSweepers.Controller = (function(smartSweepers) {
         var i = 0,
             max = this.numSweepers,
             sweeperVerts,
+            hive = this.hive,
+            elites = hive.elites,
+            sweepers = hive.collection,
+            isElite,
+            sweeper,
             g;
 
-        ctx.beginPath();
-        for (;i < max; i++) {
-          sweeperVerts = this.hive.collection[i].worldTransform();
+        this.hive.sort();
 
-          if (i == this.params.eliteCount) {
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = 'rgb(176, 64, 60)';
-            ctx.stroke();
-            ctx.beginPath();
-          }
+        for (;i < max; i++) {
+          sweeper = sweepers[i];
+          sweeperVerts = sweeper.worldTransform();
+
+          ctx.beginPath();
+          isElite = elites.indexOf(sweeper) > -1;
 
           // Draw left track of sweeper
           ctx.moveTo(sweeperVerts[0].x, sweeperVerts[0].y);
@@ -146,22 +149,32 @@ smartSweepers.Controller = (function(smartSweepers) {
           for (g = 11; g < 16; ++g) {
             ctx.lineTo(sweeperVerts[g].x, sweeperVerts[g].y);
           }
+
+          if (isElite) {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgb(176, 64, 60)';
+            ctx.stroke();
+          } else {
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgb(123, 144, 164)';
+            ctx.stroke();
+          }
         }
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = 'rgb(123, 144, 164)';
-        ctx.stroke();
         return this;
       },
       drawViewPaths: function() {
         var ctx = this.ctx,
             i = 0,
-            max = this.numSweepers,
+            maxMines = this.numSweepers,
+            maxSweepers = this.numSweepers,
             sweeper,
-            mine;
+            mine,
+            closestSweeper;
 
         if (this.viewPaths) {
+          //mines first
           ctx.beginPath();
-          for (; i < max; i++) {
+          for (; i < maxMines; i++) {
             sweeper = this.hive.collection[i];
             if (sweeper.closestMine === null) continue;
             mine = sweeper.closestMine;
@@ -170,6 +183,20 @@ smartSweepers.Controller = (function(smartSweepers) {
           }
           ctx.lineWidth = 1;
           ctx.strokeStyle = 'rgb(255, 45, 3)';
+          ctx.stroke();
+
+          //closest sweepers second
+          ctx.beginPath();
+          i = 0;
+          for (; i < maxSweepers; i++) {
+            sweeper = this.hive.collection[i];
+            if (sweeper.closestSweeper === null) continue;
+            closestSweeper = sweeper.closestSweeper;
+            ctx.moveTo(sweeper.position.x, sweeper.position.y);
+            ctx.lineTo(closestSweeper.position.x, closestSweeper.position.y);
+          }
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgb(0, 154, 15)';
           ctx.stroke();
         }
         return this;

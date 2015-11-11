@@ -31,8 +31,8 @@ idea.Hive = (function(idea) {
     this.avgRewards = 0;
     this.lowestRewards = Hive.defaults.worstRewards;
     this.bestWisdom = null;
-    this.elites = null;
-    this.nonElites = null;
+    this.elites = [];
+    this.nonElites = [];
 
     var i,
         collection = this.collection = [];
