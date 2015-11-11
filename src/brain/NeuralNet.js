@@ -107,9 +107,11 @@ brain.NeuralNet = (function(brain) {
 
     /**
      * replaces the weights in the NN with the new values
-     * @param weights
+     * @param {number[]} [weights]
      */
     putWeights: function(weights) {
+      weights = weights || this.wisdom.weights;
+
       var cWeight = 0,
           layer,
           neuron,

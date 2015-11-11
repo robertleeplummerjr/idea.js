@@ -77,6 +77,7 @@ brain.Hive = (function(brain) {
       studentWisdom.rewards = teacherWisdom.rewards;
       studentWisdom.hypothesize(this.mutationRate);
       student.brain.wisdom = studentWisdom;
+      student.brain.putWeights();
 
       return this;
     },
