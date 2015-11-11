@@ -1,4 +1,4 @@
-smartSweepers.Sweeper = (function(smartSweepers, brain) {
+smartSweepers.Sweeper = (function(smartSweepers, idea) {
   function clamp(arg, min, max) {
     if (arg < min) {
       arg = min;
@@ -15,7 +15,7 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
     var config = Sweeper.config,
         self = this;
 
-    this.brain = new brain.NeuralNet({
+    this.brain = new idea.NeuralNet({
       bias: config.neuralNetBias,
       inputCount: config.neuralNetInputCount,
       outputCount: config.neuralNetOutputCount,
@@ -229,4 +229,4 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
   };
 
   return Sweeper;
-})(smartSweepers, brain);
+})(smartSweepers, idea);

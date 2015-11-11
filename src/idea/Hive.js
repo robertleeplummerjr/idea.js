@@ -1,4 +1,4 @@
-brain.Hive = (function(brain) {
+idea.Hive = (function(idea) {
   "use strict";
 
   function randomResult(array) {
@@ -50,7 +50,7 @@ brain.Hive = (function(brain) {
      */
     teach: function(teacher, student) {
       var i = 0,
-          studentWisdom = new brain.Wisdom([], this.maxPerturbation),
+          studentWisdom = new idea.Wisdom([], this.maxPerturbation),
           teacherWisdom = teacher.brain.wisdom,
           weights = teacher.brain.wisdom.weights,
           crossoverPoint,
@@ -85,7 +85,7 @@ brain.Hive = (function(brain) {
     // Maybe switch this out with Tournament selection?
     /**
      *
-     * @returns {brain.Wisdom}
+     * @returns {idea.Wisdom}
      */
     select: function() {
       var slice = Math.random() * this.totalRewards,
@@ -219,4 +219,4 @@ brain.Hive = (function(brain) {
   };
 
   return Hive;
-})(brain);
+})(idea);

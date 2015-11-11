@@ -1,4 +1,4 @@
-brain.Wisdom = (function(brain) {
+idea.Wisdom = (function(idea) {
   "use strict";
 
   /**
@@ -31,7 +31,7 @@ brain.Wisdom = (function(brain) {
       return this;
     },
     clone: function() {
-      return new brain.Wisdom(this.weights.slice(0), this.maxPerturbation, this.rewards);
+      return new idea.Wisdom(this.weights.slice(0), this.maxPerturbation, this.rewards);
     },
     reward: function() {
       this.rewards++;
@@ -40,4 +40,4 @@ brain.Wisdom = (function(brain) {
   };
 
   return Wisdom;
-})(brain);
+})(idea);

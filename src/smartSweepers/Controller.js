@@ -42,7 +42,7 @@ smartSweepers.Controller = (function(smartSweepers) {
     this.fastRender = false;
     this.viewPaths = false;
 
-    this.hive = new brain.Hive(
+    this.hive = new idea.Hive(
       function() {
         return new smartSweepers.Sweeper({
           fieldWidth: params.windowWidth,

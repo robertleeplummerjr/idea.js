@@ -1,4 +1,4 @@
-brain.NeuralNet = (function(brain) {
+idea.NeuralNet = (function(idea) {
   "use strict";
 
   function NeuralNet(params) {
@@ -41,16 +41,16 @@ brain.NeuralNet = (function(brain) {
       //create the layers of the network
       if (this.hiddenLayerCount > 0) {
         //create first hidden layer
-        this.layers.push(new brain.NeuronLayer(this.hiddenLayerNeuronCount, this.inputCount));
+        this.layers.push(new idea.NeuronLayer(this.hiddenLayerNeuronCount, this.inputCount));
         for (; i < max; i++) {
-          this.layers.push(new brain.NeuronLayer(this.hiddenLayerNeuronCount, this.hiddenLayerNeuronCount));
+          this.layers.push(new idea.NeuronLayer(this.hiddenLayerNeuronCount, this.hiddenLayerNeuronCount));
         }
 
         //create output layer
-        this.layers.push(new brain.NeuronLayer(this.outputCount, this.hiddenLayerNeuronCount));
+        this.layers.push(new idea.NeuronLayer(this.outputCount, this.hiddenLayerNeuronCount));
       } else {
         //create output layer
-        this.layers.push(new brain.NeuronLayer(this.outputCount, this.inputCount));
+        this.layers.push(new idea.NeuronLayer(this.outputCount, this.inputCount));
       }
 
       return this;
@@ -65,7 +65,7 @@ brain.NeuralNet = (function(brain) {
           weights.push(Math.random() - Math.random());
         }
 
-        this.wisdom = new brain.Wisdom(weights, this.maxPerturbation);
+        this.wisdom = new idea.Wisdom(weights, this.maxPerturbation);
         this.putWeights(weights);
 
         return this;
@@ -258,4 +258,4 @@ brain.NeuralNet = (function(brain) {
   };
 
   return NeuralNet;
-})(brain);
+})(idea);

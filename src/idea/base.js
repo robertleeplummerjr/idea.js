@@ -1,4 +1,4 @@
-var brain = (function() {
+var idea = (function() {
     "use strict";
     return {};
 })();
