@@ -2,6 +2,13 @@ brain.NeuralNet = (function(brain) {
   "use strict";
 
   function NeuralNet(params) {
+    var defaults = NeuralNet.defaults,
+        i;
+
+    for (i in defaults) if (defaults.hasOwnProperty(i)) {
+      this[i] = params.hasOwnProperty(i) ? params[i] : defaults[i];
+    }
+
     this.bias = params.bias;
     this.inputCount = params.inputCount;
     this.outputCount = params.outputCount;
@@ -9,9 +16,11 @@ brain.NeuralNet = (function(brain) {
     this.activationResponse = params.activationResponse;
     this.hiddenLayerNeuronCount = params.hiddenLayerNeuronCount;
     this.maxPerturbation = params.maxPerturbation;
+
     this.sense = params.sense;
     this.goal = params.goal;
     this.action = params.action;
+
     this.layers = [];
     this.wisdom = null;
 
@@ -22,8 +31,8 @@ brain.NeuralNet = (function(brain) {
 
   NeuralNet.prototype = {
     /**
-     * this method builds the ANN. The weights are all initially set to
-     * random values -1 < w < 1
+     * this method builds the ANN. The weights are all initially set to random values -1 < w < 1
+     *
      */
     createNet: function() {
       var max = this.hiddenLayerCount - 1,
@@ -66,6 +75,7 @@ brain.NeuralNet = (function(brain) {
       this.wisdom.reward();
       return this;
     },
+
     /**
      * returns weights
      * @returns {Array}
@@ -233,6 +243,16 @@ brain.NeuralNet = (function(brain) {
     sigmoid: function(netInput, response) {
       return (1 / (1 + Math.exp(-netInput / response)));
     }
+  };
+
+  NeuralNet.defaults = {
+    bias: -1,
+    inputCount: 2,
+    outputCount: 2,
+    hiddenLayerCount: 1,
+    activationResponse: 1,
+    hiddenLayerNeuronCount: 6,
+    maxPerturbation: 0.3
   };
 
   return NeuralNet;

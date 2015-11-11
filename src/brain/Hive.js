@@ -44,19 +44,21 @@ brain.Hive = (function(brain) {
   Hive.prototype = {
     /**
      *
-     * @param {brain.Wisdom} teacher
+     * @param {*} teacher
+     * @param {*} student
      * @returns {Hive}
      */
-    teach: function(teacher) {
+    teach: function(teacher, student) {
       var i = 0,
-          student = new brain.Wisdom([], this.maxPerturbation),
+          studentWisdom = new brain.Wisdom([], this.maxPerturbation),
+          teacherWisdom = teacher.brain.wisdom,
+          weights = teacher.brain.wisdom.weights,
           crossoverPoint,
-          weights = teacher.weights,
           max = weights.length;
 
       if (Math.random() > this.crossoverRate) {
         for (; i < max; i++) {
-          student.weights[i] = teacher.weights[i];
+          studentWisdom.weights[i] = teacherWisdom.weights[i];
         }
       } else {
         // Pick a crossover point.
@@ -64,17 +66,19 @@ brain.Hive = (function(brain) {
 
         // Swap weights
         for (; i < crossoverPoint; i++) {
-          student.weights[i] = teacher.weights[i];
+          studentWisdom.weights[i] = teacherWisdom.weights[i];
         }
 
         for (i = crossoverPoint; i < max; i++) {
-          student.weights[i] = teacher.weights[i];
+          studentWisdom.weights[i] = teacherWisdom.weights[i];
         }
       }
 
-      student.hypothesize();
+      studentWisdom.rewards = teacherWisdom.rewards;
+      studentWisdom.hypothesize(this.mutationRate);
+      student.brain.wisdom = studentWisdom;
 
-      return student;
+      return this;
     },
 
     // Maybe switch this out with Tournament selection?
@@ -113,23 +117,20 @@ brain.Hive = (function(brain) {
 
       var item,
           collection = this.collection,
-          elites = [],
-          nonElites = [],
-          i = this.count;
+          elites = this.elites = [],
+          nonElites = this.nonElites = [],
+          i = 0,
+          max = this.count;
 
-      while (i-- > eliteCount) {
+      for (;i < max;i++) {
         item = collection[i];
         item.brain.wisdom.rewards = 0;
-        elites.push(item);
+        if (i < eliteCount) {
+          elites.push(item);
+        } else {
+          nonElites.push(item);
+        }
       }
-      this.nonElites = nonElites;
-
-      while (i-- > 0) {
-        item = collection[i];
-        item.brain.wisdom.rewards = 0;
-        elites.push(item);
-      }
-      this.elites = elites;
 
       return this;
     },
@@ -199,17 +200,13 @@ brain.Hive = (function(brain) {
           elite,
           nonElites = this.nonElites,
           nonElite,
-          teacher,
-          student,
           max = nonElites.length,
           i = 0;
 
       for (; i < max; i++) {
         elite = randomResult(elites) || this.select();
-        teacher = elite.brain.wisdom;
         nonElite = nonElites[i];
-        student = this.teach(teacher);
-        nonElite.brain.wisdom = student;
+        this.teach(elite, nonElite);
       }
 
       return this;

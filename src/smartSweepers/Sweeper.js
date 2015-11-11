@@ -221,7 +221,7 @@ smartSweepers.Sweeper = (function(smartSweepers, brain) {
     scale: 5
   };
 
-  Sweeper.defaultSettings = {
+  Sweeper.defaults = {
     hit: null,
     fieldHeight: 1,
     fieldWidth: 1,

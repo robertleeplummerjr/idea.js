@@ -94,7 +94,7 @@
   <table id="stats-table">
     <thead>
     <tr>
-      <th>Generation</th>
+      <th>Day</th>
       <th>Best</th>
       <th>Average</th>
     </tr>
@@ -231,7 +231,7 @@
     controller.update();
     if (day != controller.day) {
       day = controller.day;
-      controller.plotStats();
+      plotStats();
     }
     setTimeout(function() {
       if (controller.fastRender) {
@@ -246,17 +246,17 @@
 
   function plotStats() {
     if (controller.day < 1) return;
-    var generationEl = document.createElement('td'),
-        bestFitnessEl = document.createElement('td'),
-        avgFitnessEl = document.createElement('td'),
+    var dayEl = document.createElement('td'),
+        bestEl = document.createElement('td'),
+        avgEl = document.createElement('td'),
         rowEl = document.createElement('tr'),
         tableEl = document.getElementById('stats-table');
-    generationEl.innerHTML = controller.day.toString();
-    bestFitnessEl.innerHTML = controller.bestMines.toString();
-    avgFitnessEl.innerHTML = controller.avgMines.toFixed(2);
-    rowEl.appendChild(generationEl);
-    rowEl.appendChild(bestFitnessEl);
-    rowEl.appendChild(avgFitnessEl);
+    dayEl.innerHTML = controller.day.toString();
+    bestEl.innerHTML = controller.bestMines.toString();
+    avgEl.innerHTML = controller.avgMines.toFixed(2);
+    rowEl.appendChild(dayEl);
+    rowEl.appendChild(bestEl);
+    rowEl.appendChild(avgEl);
     if (tableEl !== null) {
       tableEl.appendChild(rowEl);
     }

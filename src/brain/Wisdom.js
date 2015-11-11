@@ -19,12 +19,12 @@ brain.Wisdom = (function(brain) {
      *
      * @returns {Wisdom}
      */
-    hypothesize: function() {
+    hypothesize: function(mutationRate) {
       var i = 0,
           max = this.weights.length;
 
       for (; i < max; i++) {
-        if (Math.random() < this.mutationRate) {
+        if (Math.random() < mutationRate) {
           this.weights[i] += (Math.random() - Math.random()) * this.maxPerturbation;
         }
       }
