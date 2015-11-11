@@ -4,6 +4,7 @@ idea.Hive = (function(idea) {
   function randomResult(array) {
     return array[Math.floor(Math.random() * (array.length - 1))];
   }
+
   /**
    *
    * @param {function} initType
@@ -74,7 +75,6 @@ idea.Hive = (function(idea) {
         }
       }
 
-      studentWisdom.rewards = teacherWisdom.rewards;
       studentWisdom.hypothesize(this.mutationRate);
       student.brain.wisdom = studentWisdom;
       student.brain.putWeights();
@@ -111,27 +111,37 @@ idea.Hive = (function(idea) {
     /**
      *
      * @param {number} [eliteCount]
-     * @returns {*}
+     * @param {boolean} [resetRewards]
+     * @returns {Hive}
      */
-    setElites: function(eliteCount) {
+    setElites: function(eliteCount, resetRewards) {
       eliteCount = eliteCount || this.eliteCount;
+      resetRewards = resetRewards !== undefined ? resetRewards : true;
 
       var item,
           collection = this.collection,
           elites = this.elites = [],
           nonElites = this.nonElites = [],
           i = 0,
-          max = this.count;
+          max = this.count,
+          nonEliteCount = max - eliteCount;
 
-      for (;i < max;i++) {
+      for (;i < max; i++) {
         item = collection[i];
-        item.brain.wisdom.rewards = 0;
-        if (i < eliteCount) {
-          elites.push(item);
-        } else {
+
+        if (resetRewards) {
+          item.brain.wisdom.rewards = 0;
+        }
+
+        if (nonElites.length < nonEliteCount) {
           nonElites.push(item);
+        } else {
+          elites.push(item);
         }
       }
+
+      elites.reverse();
+      nonElites.reverse();
 
       return this;
     },
@@ -180,9 +190,9 @@ idea.Hive = (function(idea) {
     },
     sort: function() {
       this.collection.sort(function(a, b) {
-        if (a.brain.rewards > b.brain.rewards) {
+        if (a.brain.wisdom.rewards > b.brain.wisdom.rewards) {
           return 1;
-        } else if (a.brain.rewards < b.brain.rewards) {
+        } else if (a.brain.wisdom.rewards < b.brain.wisdom.rewards) {
           return -1;
         } else {
           return 0;

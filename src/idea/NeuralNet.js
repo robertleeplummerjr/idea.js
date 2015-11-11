@@ -2,7 +2,6 @@ idea.NeuralNet = (function(idea) {
   "use strict";
 
   /**
-   *
    * @param {Object} params
    * @constructor
    */
@@ -37,7 +36,7 @@ idea.NeuralNet = (function(idea) {
   NeuralNet.prototype = {
     /**
      * this method builds the a NN. The weights are all initially set to random values between -1 and 1
-     * @memberOf {idea.NeuralNet}
+     * @returns {NeuralNet}
      */
     createNet: function() {
       var max = this.hiddenLayerCount - 1,
@@ -61,19 +60,23 @@ idea.NeuralNet = (function(idea) {
       return this;
     },
 
+    /**
+     *
+     * @returns {NeuralNet}
+     */
     createWisdom: function() {
-        var weights = [],
-            i = 0,
-            max = this.getNumWeights();
+      var weights = [],
+          i = 0,
+          max = this.getNumWeights();
 
-        for (; i < max; i++) {
-          weights.push(Math.random() - Math.random());
-        }
+      for (; i < max; i++) {
+        weights.push(Math.random() - Math.random());
+      }
 
-        this.wisdom = new idea.Wisdom(weights, this.maxPerturbation);
-        this.putWeights(weights);
+      this.wisdom = new idea.Wisdom(weights, this.maxPerturbation);
+      this.putWeights(weights);
 
-        return this;
+      return this;
     },
 
     reward: function() {

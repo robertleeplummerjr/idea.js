@@ -251,12 +251,15 @@
         avgEl = document.createElement('td'),
         rowEl = document.createElement('tr'),
         tableEl = document.getElementById('stats-table');
+
     dayEl.innerHTML = controller.day.toString();
     bestEl.innerHTML = controller.bestMines.toString();
     avgEl.innerHTML = controller.avgMines.toFixed(2);
+
     rowEl.appendChild(dayEl);
     rowEl.appendChild(bestEl);
     rowEl.appendChild(avgEl);
+
     if (tableEl !== null) {
       tableEl.appendChild(rowEl);
     }

@@ -1,4 +1,6 @@
 smartSweepers.Sweeper = (function(smartSweepers, idea) {
+  "use strict";
+
   function clamp(arg, min, max) {
     if (arg < min) {
       arg = min;

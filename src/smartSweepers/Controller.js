@@ -1,5 +1,5 @@
 smartSweepers.Controller = (function(smartSweepers) {
-    "use strict";
+  "use strict";
 
   function Controller(ctx, params) {
     var key,

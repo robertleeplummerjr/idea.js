@@ -1,4 +1,6 @@
 smartSweepers.Mine = (function() {
+  "use strict";
+
   function Mine(x, y) {
     this.position = new Point(x, y);
   }
