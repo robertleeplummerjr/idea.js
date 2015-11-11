@@ -1,6 +1,11 @@
 idea.NeuralNet = (function(idea) {
   "use strict";
 
+  /**
+   *
+   * @param {Object} params
+   * @constructor
+   */
   function NeuralNet(params) {
     var defaults = NeuralNet.defaults,
         i;
@@ -31,8 +36,8 @@ idea.NeuralNet = (function(idea) {
 
   NeuralNet.prototype = {
     /**
-     * this method builds the ANN. The weights are all initially set to random values -1 < w < 1
-     *
+     * this method builds the a NN. The weights are all initially set to random values between -1 and 1
+     * @memberOf {idea.NeuralNet}
      */
     createNet: function() {
       var max = this.hiddenLayerCount - 1,
@@ -78,7 +83,7 @@ idea.NeuralNet = (function(idea) {
 
     /**
      * returns weights
-     * @returns {Array}
+     * @returns {number[]}
      */
     getWeights: function() {
       var weights = [],
@@ -108,6 +113,7 @@ idea.NeuralNet = (function(idea) {
     /**
      * replaces the weights in the NN with the new values
      * @param {number[]} [weights]
+     * @returns {NeuralNet}
      */
     putWeights: function(weights) {
       weights = weights || this.wisdom.weights;
@@ -167,9 +173,12 @@ idea.NeuralNet = (function(idea) {
       return weights;
     },
 
+    /**
+     * causes a chain reaction of analysis (neural net processing) of senses (inputs), which causes an action (outputs) and potentially a reward
+     * @returns {NeuralNet}
+     */
     think: function() {
-      //stores the resultant outputs from each layer
-      var inputs = this.sense ? this.sense() : [],
+      var inputs = this.sense !== undefined ? this.sense() : [],
           outputs = [],
           layer,
           neurons,
@@ -183,7 +192,7 @@ idea.NeuralNet = (function(idea) {
 
       //first check that we have the correct amount of inputs
       if (inputs.length != this.inputCount) {
-        return null;
+        return this;
       }
 
       //For each layer....
