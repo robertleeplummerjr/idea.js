@@ -7,25 +7,20 @@ idea.Hive = (function(idea) {
 
   /**
    *
-   * @param {function} initType
-   * @param {number} count
-   * @param {number} mutationRate
-   * @param {number} crossoverRate
-   * @param {number} weightCount
-   * @param {number} maxPerturbation
-   * @param {number} eliteCount
-   * @param {number} eliteCopiesCount
+   * @param {Object} settings
    * @constructor
    */
-  function Hive(initType, count, mutationRate, crossoverRate, weightCount, maxPerturbation, eliteCount, eliteCopiesCount) {
-    this.initType = initType;
-    this.count = count;
-    this.weightCount = weightCount;
-    this.mutationRate = mutationRate;
-    this.maxPerturbation = maxPerturbation;
-    this.eliteCount = eliteCount;
-    this.eliteCopiesCount = eliteCopiesCount;
-    this.crossoverRate = crossoverRate;
+  function Hive(settings) {
+    var defaults = Hive.defaults,
+      i,
+      collection = this.collection = [];
+
+    settings = settings || {};
+    for (i in defaults) if (defaults.hasOwnProperty(i)) {
+      settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
+    }
+
+    this.settings = settings;
     this.totalRewards = 0;
     this.bestRewards = 0;
     this.avgRewards = 0;
@@ -34,11 +29,8 @@ idea.Hive = (function(idea) {
     this.elites = [];
     this.nonElites = [];
 
-    var i,
-        collection = this.collection = [];
-
-    for (i = 0; i < count; i++) {
-      collection.push(initType());
+    for (i = 0; i < this.settings.count; i++) {
+      collection.push(this.settings.initType());
     }
   }
 
@@ -51,19 +43,19 @@ idea.Hive = (function(idea) {
      */
     teach: function(teacher, student) {
       var i = 0,
-          studentWisdom = new idea.Wisdom([], this.maxPerturbation),
+          studentWisdom = new idea.Wisdom([], this.settings.maxPerturbation),
           teacherWisdom = teacher.brain.wisdom,
           weights = teacher.brain.wisdom.weights,
           crossoverPoint,
           max = weights.length;
 
-      if (Math.random() > this.crossoverRate) {
+      if (Math.random() > this.settings.crossoverRate) {
         for (; i < max; i++) {
           studentWisdom.weights[i] = teacherWisdom.weights[i];
         }
       } else {
         // Pick a crossover point.
-        crossoverPoint = Math.floor((Math.random() * (this.weightCount - 1)));
+        crossoverPoint = Math.floor((Math.random() * (this.settings.weightCount - 1)));
 
         // Swap weights
         for (; i < crossoverPoint; i++) {
@@ -75,7 +67,7 @@ idea.Hive = (function(idea) {
         }
       }
 
-      studentWisdom.hypothesize(this.mutationRate);
+      studentWisdom.hypothesize(this.settings.mutationRate);
       student.brain.wisdom = studentWisdom;
       student.brain.putWeights();
 
@@ -92,7 +84,7 @@ idea.Hive = (function(idea) {
           item,
           chosen = null,
           currentRewards = 0,
-          max = this.count,
+          max = this.settings.count,
           i = 0;
 
       // Keep adding rewards until it is above the slice,
@@ -115,7 +107,7 @@ idea.Hive = (function(idea) {
      * @returns {Hive}
      */
     setElites: function(eliteCount, resetRewards) {
-      eliteCount = eliteCount || this.eliteCount;
+      eliteCount = eliteCount || this.settings.eliteCount;
       resetRewards = resetRewards !== undefined ? resetRewards : true;
 
       var item,
@@ -156,7 +148,7 @@ idea.Hive = (function(idea) {
           rewards,
           wisdom,
           item,
-          max = this.count,
+          max = this.settings.count,
           lowestRewards = this.lowestRewards,
           i = 0;
 
@@ -177,7 +169,7 @@ idea.Hive = (function(idea) {
         this.totalRewards += rewards;
       }
 
-      this.avgRewards = this.totalRewards / this.count;
+      this.avgRewards = this.totalRewards / this.settings.count;
       return this;
     },
     resetStats: function() {
@@ -225,7 +217,17 @@ idea.Hive = (function(idea) {
   };
 
   Hive.defaults = {
-    worstRewards: 9999999
+    initType: function() {
+      return null;
+    },
+    worstRewards: 9999999,
+    count: 5,
+    mutationRate: 0.1,
+    crossoverRate: 0.7,
+    weightCount: 0,
+    maxPerturbation: 0.3,
+    eliteCount: 4,
+    eliteCopiesCount: 1
   };
 
   return Hive;

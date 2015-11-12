@@ -26,27 +26,27 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
       hiddenLayerNeuronCount: config.neuralNetHiddenLayerNeuronCount,
       maxPerturbation: config.neuralNetPerturbation,
       sense: function() {
-        var inputs = [],
-
-            //get closest mine
-            closestMine = self.closestMine.position.normalize(),
-
-            //get closest sweeper
-            closestSweeper = self.closestSweeper.position.normalize();
+        var inputs = [];
 
         //add in vectors to closest mine
-        inputs.push(closestMine.x);
-        inputs.push(closestMine.y);
+        self.closestMine.position
+          .normalize()
+          .pushTo(inputs);
 
         //add in vectors to the closest sweeper
-        inputs.push(closestSweeper.x);
-        inputs.push(closestSweeper.y);
+        self.closestSweeper.position
+          .normalize()
+          .pushTo(inputs);
 
-        //add in its direction
-        inputs.push(self.direction.x);
-        inputs.push(self.direction.y);
+        //add in vectors of the direction the closest sweeper is moving
+        self.closestSweeper.direction
+          .normalize()
+          .pushTo(inputs);
 
-        //add in its speed
+        self.direction
+          .normalize()
+          .pushTo(inputs);
+
         inputs.push(self.speed);
 
         return inputs;
@@ -214,7 +214,7 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
 
   Sweeper.config = {
     neuralNetBias: -1,
-    neuralNetInputCount: 7,
+    neuralNetInputCount: 9,
     neuralNetOutputCount: 2,
     neuralNetHiddenLayerCount: 1,
     neuralNetHiddenLayerNeuronCount: 6,

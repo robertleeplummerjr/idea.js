@@ -1,25 +1,20 @@
 smartSweepers.Controller = (function(smartSweepers) {
   "use strict";
 
-  function Controller(ctx, params) {
+  function Controller(settings) {
     var key,
         i,
         defaults = Controller.defaults,
         self = this;
 
-    params = params || {};
+    settings = settings || {};
 
     for (key in defaults) if (defaults.hasOwnProperty(key)) {
-      if (params[key] === undefined) {
-        params[key] = defaults[key];
-      }
+      settings = settings.hasOwnProperty(key) ? settings[key] : defaults[key];
     }
 
-    this.ctx = ctx;
-    this.params = params;
+    this.settings = settings;
     this.mines = [];
-    this.numSweepers = params.numSweepers;
-    this.numMines = params.numMines;
     this.numWeightsForNN = 0;
 
     // Keep Per day
@@ -35,34 +30,25 @@ smartSweepers.Controller = (function(smartSweepers) {
     // Current day;
     this.day = 0;
 
-    // Dimension of window
-    this.width = params.windowWidth;
-    this.height = params.windowHeight;
-
     this.fastRender = false;
     this.viewPaths = false;
 
-    this.hive = new idea.Hive(
-      function() {
+
+    this.hive = new idea.Hive({
+      initType: function() {
         return new smartSweepers.Sweeper({
-          fieldWidth: params.windowWidth,
-          fieldHeight: params.windowHeight,
+          fieldWidth: settings.windowWidth,
+          fieldHeight: settings.windowHeight,
           hit: function(mine) {
             var i = self.mines.indexOf(mine);
-            self.mines[i] = new smartSweepers.Mine(Math.random() * self.width, Math.random() * self.height);
+            self.mines[i] = new smartSweepers.Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight);
           }
         });
-      },
-      this.numSweepers,
-      params.mutationRate,
-      params.crossoverRate,
-      this.numWeightsForNN,
-      params.maxPerturbation,
-      params.eliteCount
-    );
+      }
+    });
 
-    for (i = 0; i < this.numMines; i++) {
-      this.mines.push(new smartSweepers.Mine(Math.random() * this.width, Math.random() * this.height));
+    for (i = 0; i < settings.numMines; i++) {
+      this.mines.push(new smartSweepers.Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight));
     }
   }
 
@@ -75,20 +61,22 @@ smartSweepers.Controller = (function(smartSweepers) {
             .drawViewPaths();
       },
       drawBackground: function() {
-        var ctx = this.ctx;
+        var settings = this.settings,
+          ctx = settings.ctx;
 
-        ctx.clearRect(0, 0, this.params.windowWidth, this.params.windowHeight);
+        ctx.clearRect(0, 0, settings.windowWidth, settings.windowHeight);
         ctx.beginPath();
-        ctx.rect(0, 0, this.params.windowWidth, this.params.windowHeight);
+        ctx.rect(0, 0, settings.windowWidth, settings.windowHeight);
         ctx.fillStyle = 'rgb(32, 36, 45)';
         ctx.fill();
 
         return this;
       },
       drawMines: function() {
-        var ctx = this.ctx,
+        var settings = this.settings,
+            ctx = settings.ctx,
             i = 0,
-            max = this.numMines,
+            max = settings.numMines,
             mineVerts,
             g;
 
@@ -107,8 +95,10 @@ smartSweepers.Controller = (function(smartSweepers) {
         return this;
       },
       drawSweepers: function() {
-        var i = 0,
-            max = this.numSweepers,
+        var settings = this.settings,
+            ctx = settings.ctx,
+            i = 0,
+            max = settings.numSweepers,
             sweeperVerts,
             hive = this.hive,
             elites = hive.elites,
@@ -163,10 +153,11 @@ smartSweepers.Controller = (function(smartSweepers) {
         return this;
       },
       drawViewPaths: function() {
-        var ctx = this.ctx,
+        var settings = this.settings,
+            ctx = settings.ctx,
             i = 0,
-            maxMines = this.numSweepers,
-            maxSweepers = this.numSweepers,
+            hive = this.hive,
+            max = settings.numSweepers,
             sweeper,
             mine,
             closestSweeper;
@@ -174,8 +165,8 @@ smartSweepers.Controller = (function(smartSweepers) {
         if (this.viewPaths) {
           //mines first
           ctx.beginPath();
-          for (; i < maxMines; i++) {
-            sweeper = this.hive.collection[i];
+          for (; i < max; i++) {
+            sweeper = hive.collection[i];
             if (sweeper.closestMine === null) continue;
             mine = sweeper.closestMine;
             ctx.moveTo(sweeper.position.x, sweeper.position.y);
@@ -188,8 +179,8 @@ smartSweepers.Controller = (function(smartSweepers) {
           //closest sweepers second
           ctx.beginPath();
           i = 0;
-          for (; i < maxSweepers; i++) {
-            sweeper = this.hive.collection[i];
+          for (; i < max; i++) {
+            sweeper = hive.collection[i];
             if (sweeper.closestSweeper === null) continue;
             closestSweeper = sweeper.closestSweeper;
             ctx.moveTo(sweeper.position.x, sweeper.position.y);
@@ -205,12 +196,14 @@ smartSweepers.Controller = (function(smartSweepers) {
       update: function() {
         var i = 0,
             sweeper,
-            max = this.numSweepers;
+            hive = this.hive,
+            settings = this.settings,
+            max = settings.numSweepers;
 
-        if (this.ticks++ < this.params.numTicks) {
+        if (this.ticks++ < settings.numTicks) {
           for (; i < max; i++) {
-            sweeper = this.hive.collection[i];
-            sweeper.move(this.mines, this.hive.collection);
+            sweeper = hive.collection[i];
+            sweeper.move(this.mines, hive.collection);
           }
         } else {
           this.beginNewDay();
@@ -260,18 +253,12 @@ smartSweepers.Controller = (function(smartSweepers) {
     };
 
   Controller.defaults = {
+    ctx: null,
     windowWidth: 400,
     windowHeight: 400,
-    framesPerSecond: 0,
-    maxTurnRate: 0,
-    maxSpeed: 0,
     numSweepers: 0,
     numMines: 0,
-    numTicks: 0,
-    crossoverRate: 0,
-    mutationRate: 0,
-    maxPerturbation: 0,
-    eliteCount: 5
+    numTicks: 0
   };
 
   return Controller;

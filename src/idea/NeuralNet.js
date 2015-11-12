@@ -5,26 +5,16 @@ idea.NeuralNet = (function(idea) {
    * @param {Object} params
    * @constructor
    */
-  function NeuralNet(params) {
+  function NeuralNet(settings) {
     var defaults = NeuralNet.defaults,
         i;
 
+    settings = settings || {};
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
-      this[i] = params.hasOwnProperty(i) ? params[i] : defaults[i];
+      settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
 
-    this.bias = params.bias;
-    this.inputCount = params.inputCount;
-    this.outputCount = params.outputCount;
-    this.hiddenLayerCount = params.hiddenLayerCount;
-    this.activationResponse = params.activationResponse;
-    this.hiddenLayerNeuronCount = params.hiddenLayerNeuronCount;
-    this.maxPerturbation = params.maxPerturbation;
-
-    this.sense = params.sense;
-    this.goal = params.goal;
-    this.action = params.action;
-
+    this.settings = settings;
     this.layers = [];
     this.wisdom = null;
 
@@ -39,22 +29,24 @@ idea.NeuralNet = (function(idea) {
      * @returns {NeuralNet}
      */
     createNet: function() {
-      var max = this.hiddenLayerCount - 1,
-          i = 0;
+      var settings = this.settings,
+          max = settings.hiddenLayerCount - 1,
+          i = 0,
+          layers = this.layers;
 
       //create the layers of the network
-      if (this.hiddenLayerCount > 0) {
+      if (settings.hiddenLayerCount > 0) {
         //create first hidden layer
-        this.layers.push(new idea.NeuronLayer(this.hiddenLayerNeuronCount, this.inputCount));
+        layers.push(new idea.NeuronLayer(settings.hiddenLayerNeuronCount, settings.inputCount));
         for (; i < max; i++) {
-          this.layers.push(new idea.NeuronLayer(this.hiddenLayerNeuronCount, this.hiddenLayerNeuronCount));
+          layers.push(new idea.NeuronLayer(settings.hiddenLayerNeuronCount, settings.hiddenLayerNeuronCount));
         }
 
         //create output layer
-        this.layers.push(new idea.NeuronLayer(this.outputCount, this.hiddenLayerNeuronCount));
+        layers.push(new idea.NeuronLayer(settings.outputCount, settings.hiddenLayerNeuronCount));
       } else {
         //create output layer
-        this.layers.push(new idea.NeuronLayer(this.outputCount, this.inputCount));
+        layers.push(new idea.NeuronLayer(settings.outputCount, settings.inputCount));
       }
 
       return this;
@@ -65,7 +57,8 @@ idea.NeuralNet = (function(idea) {
      * @returns {NeuralNet}
      */
     createWisdom: function() {
-      var weights = [],
+      var settings = this.settings,
+          weights = [],
           i = 0,
           max = this.getNumWeights();
 
@@ -73,7 +66,7 @@ idea.NeuralNet = (function(idea) {
         weights.push(Math.random() - Math.random());
       }
 
-      this.wisdom = new idea.Wisdom(weights, this.maxPerturbation);
+      this.wisdom = new idea.Wisdom(weights, settings.maxPerturbation);
       this.putWeights(weights);
 
       return this;
@@ -89,7 +82,8 @@ idea.NeuralNet = (function(idea) {
      * @returns {number[]}
      */
     getWeights: function() {
-      var weights = [],
+      var settings = this.settings,
+          weights = [],
           layer,
           neuron,
           i,
@@ -97,7 +91,7 @@ idea.NeuralNet = (function(idea) {
           k;
 
       //for each layer
-      for (i = 0; i <= this.hiddenLayerCount; i++) {
+      for (i = 0; i <= settings.hiddenLayerCount; i++) {
         layer = this.layers[i];
 
         //for each neuron
@@ -121,7 +115,8 @@ idea.NeuralNet = (function(idea) {
     putWeights: function(weights) {
       weights = weights || this.wisdom.weights;
 
-      var cWeight = 0,
+      var settings = this.settings,
+          cWeight = 0,
           layer,
           neuron,
           i,
@@ -129,7 +124,7 @@ idea.NeuralNet = (function(idea) {
           k;
 
       //for each layer
-      for (i = 0; i <= this.hiddenLayerCount; i++) {
+      for (i = 0; i <= settings.hiddenLayerCount; i++) {
         layer = this.layers[i];
 
         //for each neuron
@@ -181,7 +176,8 @@ idea.NeuralNet = (function(idea) {
      * @returns {NeuralNet}
      */
     think: function() {
-      var inputs = this.sense !== undefined ? this.sense() : [],
+      var settings = this.settings,
+          inputs = settings.sense !== null ? settings.sense() : [],
           outputs = [],
           layer,
           neurons,
@@ -194,12 +190,12 @@ idea.NeuralNet = (function(idea) {
           k;
 
       //first check that we have the correct amount of inputs
-      if (inputs.length != this.inputCount) {
+      if (inputs.length != settings.inputCount) {
         return this;
       }
 
       //For each layer....
-      for (i = 0; i <= this.hiddenLayerCount; i++) {
+      for (i = 0; i <= settings.hiddenLayerCount; i++) {
         layer = this.layers[i];
         neurons = layer.neurons;
         //After the first layer, the inputs get set to the output of previous layer
@@ -230,25 +226,25 @@ idea.NeuralNet = (function(idea) {
           }
 
           //add in the bias
-          netInput += neuron.weights[inputCount - 1] * this.bias;
+          netInput += neuron.weights[inputCount - 1] * settings.bias;
 
           /*
           we can store the outputs from each layer as we generate them.
           The combined activation is first filtered through the sigmoid
           function
           */
-          outputs.push(this.sigmoid(netInput, this.activationResponse));
+          outputs.push(this.sigmoid(netInput, settings.activationResponse));
 
           weight = 0;
         }
       }
 
-      if (this.action !== undefined) {
-        this.action(outputs);
+      if (settings.action !== undefined) {
+        settings.action(outputs);
       }
 
-      if (this.goal !== undefined) {
-        this.wisdom.rewards += this.goal();
+      if (settings.goal !== undefined) {
+        this.wisdom.rewards += settings.goal();
       }
 
       return this;
@@ -266,7 +262,11 @@ idea.NeuralNet = (function(idea) {
     hiddenLayerCount: 1,
     activationResponse: 1,
     hiddenLayerNeuronCount: 6,
-    maxPerturbation: 0.3
+    maxPerturbation: 0.3,
+
+    sense: null,
+    goal: null,
+    action: null
   };
 
   return NeuralNet;

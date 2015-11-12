@@ -37,6 +37,11 @@ var Point = (function() {
       return p
           .sub(this)
           .root();
+    },
+    pushTo: function(array) {
+      array.push(this.x);
+      array.push(this.y);
+      return this;
     }
   };
   return Point;

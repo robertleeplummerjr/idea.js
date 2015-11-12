@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+<script src="../src/idea/base.js"></script>
+<script src="../src/idea/Hive.js"></script>
+<script src="../src/idea/NeuralNet.js"></script>
+<script src="../src/idea/Neuron.js"></script>
+<script src="../src/idea/NeuronLayer.js"></script>
+<script src="../src/idea/Wisdom.js"></script>
+<script>
+  function distance(p1, p2){
+    return Math.sqrt((p1.x -= p2.x) * p1.x + (p1.y -= p2.y) * p1.y);
+  }
+
+  Array.prototype.distance = function() {
+    var sum = 0,
+        previousPoint = this[0],
+        i = 1,
+        max = this.length;
+
+    for(;i < max; i++) {
+      sum += distance(previousPoint, this[i]);
+      previousPoint = this[i];
+    }
+    return sum;
+  };
+
+  Array.prototype.distances = function() {
+    var distances = [],
+        previousPoint = this[0],
+        i = 1,
+        max = this.length;
+
+    for(;i < max; i++) {
+      distances.push(distance(previousPoint, this[i]));
+      previousPoint = this[i];
+    }
+    return distances;
+  };
+
+  Array.prototype.clean = function() {
+    return this.filter(function (n) {
+      return n !== null && n !== undefined;
+    });
+  };
+
+  var canvas = document.getElementById('canvas'),
+      width = canvas.width,
+      height = canvas.height,
+      points = [],
+      point,
+      count = 10,
+      i = 0,
+      previousDistance = 99999999999999999,
+      currentDistance = 99999999999999999,
+      ticks,
+      maxTicks = 60;
+
+
+  var SalesMan = function(points) {
+    var self = this;
+    this.points = points;
+    this.previousDistance = 999999999999999;
+    this.currentDistance = 999999999999999;
+    this.brain = new idea.NeuralNet({
+      inputCount: count - 1,
+      outputCount: count,
+      bias: -1,
+      hiddenLayerCount: 1,
+      hiddenLayerNeuronCount: 6,
+      activationResponse: 1,
+      maxPerturbation: 0.3,
+      scale: 5,
+      sense: function() {
+        return self.points.distances();
+      },
+      goal: function() {
+        previousDistance = currentDistance;
+        currentDistance = self.points.distance();
+        if (previousDistance < currentDistance) {
+          return 1;
+        }
+        return 0;
+      },
+      action: function(newPointIndexsRaw) {
+        var oldPointsOrder = points,
+            i = 0,
+            newIndex;
+
+        points = [];
+
+        for(; i < count; i++) {
+          point = oldPointsOrder[i];
+          oldPointsOrder[i] = null;
+          newIndex = Math.floor(newPointIndexsRaw[i] * count);
+          while (points[newIndex]) {
+            newIndex++;
+          }
+          points[newIndex] = point;
+        }
+
+        oldPointsOrder = oldPointsOrder.clean();
+        self.points = points.clean();
+      }
+    });
+  };
+  new idea.Hive({
+
+  });
+  for(;i < count; i++) {
+    point = {
+      x: Math.floor(Math.random() * width),
+      y: Math.floor(Math.random() * height)
+    };
+    points.push(point);
+  }
+
+  setInterval(function() {
+    ticks++;
+    if (ticks > maxTicks) {
+      ticks = 0;
+
+    }
+    brain.think();
+  }, 50);
+</script>
+</html>
