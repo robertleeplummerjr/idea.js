@@ -13,10 +13,28 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
     return arg;
   }
 
-  function Sweeper(params) {
+  function Sweeper(settings) {
     var config = Sweeper.config,
-        self = this;
+        defaults = Sweeper.defaults,
+        self = this,
+        _settings = {},
+        i;
 
+    settings = settings || {};
+
+    for (i in defaults) if (defaults.hasOwnProperty(i)) {
+      _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
+    }
+    this.settings = settings = _settings;
+    this.position = new Point(Math.random() * settings.fieldWidth, Math.random() * settings.fieldHeight);
+    this.direction = new Point();
+    this.rotation = Math.random() * Math.PI * 2;
+    this.speed = 0;
+    this.lTrack = 0.16;
+    this.rTrack = 0.16;
+    this.scale = Sweeper.config.scale;
+    this.closestMine = null;
+    this.closestSweeper = null;
     this.brain = new idea.NeuralNet({
       bias: config.neuralNetBias,
       inputCount: config.neuralNetInputCount,
@@ -54,7 +72,7 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
       goal: function() {
         var hit = self.checkForMine();
         if (hit) {
-          params.hit(self.closestMine);
+          settings.hit(self.closestMine);
           return 1;
         }
         return 0;
@@ -69,16 +87,6 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
         self.rTrack = movements[1];
       }
     });
-
-    this.params = params;
-    this.position = new Point(Math.random() * params.fieldWidth, Math.random() * params.fieldHeight);
-    this.direction = new Point();
-    this.rotation = Math.random() * Math.PI * 2;
-    this.speed = 0;
-    this.lTrack = 0.16;
-    this.rTrack = 0.16;
-    this.scale = Sweeper.config.scale;
-    this.closestMine = null;
   }
 
   Sweeper.prototype = {
@@ -96,10 +104,10 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
       this.brain.think();
 
       //calculate steering forces
-      var params = this.params,
+      var settings = this.settings,
           rotForce = this.lTrack - this.rTrack,
           //clamp rotation
-          rotForceClamped = clamp(rotForce, -params.maxTurnRate, params.maxTurnRate),
+          rotForceClamped = clamp(rotForce, -settings.maxTurnRate, settings.maxTurnRate),
           // Rotate sweeper
           rotation = this.rotation += rotForceClamped,
           speed = this.speed = (this.lTrack + this.rTrack),
@@ -116,20 +124,20 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
 
       //wrap around window limits
       // Make sure position is not out of the field
-      if (position.x > params.fieldWidth) {
+      if (position.x > settings.fieldWidth) {
         position.x = 0;
       }
 
       if (position.x < 0) {
-        position.x = params.fieldWidth;
+        position.x = settings.fieldWidth;
       }
 
-      if (position.y > params.fieldHeight) {
+      if (position.y > settings.fieldHeight) {
         position.y = 0;
       }
 
       if (position.y < 0) {
-        position.y = params.fieldHeight;
+        position.y = settings.fieldHeight;
       }
     },
     worldTransform: function() {

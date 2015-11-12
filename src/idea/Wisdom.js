@@ -30,9 +30,6 @@ idea.Wisdom = (function(idea) {
       }
       return this;
     },
-    clone: function() {
-      return new idea.Wisdom(this.weights.slice(0), this.maxPerturbation, this.rewards);
-    },
     reward: function() {
       this.rewards++;
       return this;

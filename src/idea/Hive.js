@@ -12,15 +12,16 @@ idea.Hive = (function(idea) {
    */
   function Hive(settings) {
     var defaults = Hive.defaults,
-      i,
-      collection = this.collection = [];
+        i,
+        collection = this.collection = [],
+        _settings = {};
 
     settings = settings || {};
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
-      settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
+      _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
 
-    this.settings = settings;
+    this.settings = settings = _settings;
     this.totalRewards = 0;
     this.bestRewards = 0;
     this.avgRewards = 0;
@@ -29,8 +30,8 @@ idea.Hive = (function(idea) {
     this.elites = [];
     this.nonElites = [];
 
-    for (i = 0; i < this.settings.count; i++) {
-      collection.push(this.settings.initType());
+    for (i = 0; i < settings.count; i++) {
+      collection.push(settings.initType());
     }
   }
 
@@ -81,10 +82,11 @@ idea.Hive = (function(idea) {
      */
     select: function() {
       var slice = Math.random() * this.totalRewards,
+          settings = this.settings,
           item,
           chosen = null,
           currentRewards = 0,
-          max = this.settings.count,
+          max = settings.count,
           i = 0;
 
       // Keep adding rewards until it is above the slice,
@@ -112,10 +114,11 @@ idea.Hive = (function(idea) {
 
       var item,
           collection = this.collection,
+          settings = this.settings,
           elites = this.elites = [],
           nonElites = this.nonElites = [],
           i = 0,
-          max = this.count,
+          max = settings.count,
           nonEliteCount = max - eliteCount;
 
       for (;i < max; i++) {
@@ -145,10 +148,11 @@ idea.Hive = (function(idea) {
     calcStats: function() {
       this.totalRewards = 0;
       var bestRewards = 0,
+          settings = this.settings,
           rewards,
           wisdom,
           item,
-          max = this.settings.count,
+          max = settings.count,
           lowestRewards = this.lowestRewards,
           i = 0;
 
@@ -221,12 +225,12 @@ idea.Hive = (function(idea) {
       return null;
     },
     worstRewards: 9999999,
-    count: 5,
+    count: 30,
     mutationRate: 0.1,
     crossoverRate: 0.7,
     weightCount: 0,
     maxPerturbation: 0.3,
-    eliteCount: 4,
+    eliteCount: 5,
     eliteCopiesCount: 1
   };
 

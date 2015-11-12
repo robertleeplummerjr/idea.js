@@ -2,19 +2,20 @@ idea.NeuralNet = (function(idea) {
   "use strict";
 
   /**
-   * @param {Object} params
+   * @param {Object} settings
    * @constructor
    */
   function NeuralNet(settings) {
     var defaults = NeuralNet.defaults,
-        i;
+        i,
+        _settings = {};
 
     settings = settings || {};
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
-      settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
+      _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
 
-    this.settings = settings;
+    this.settings = _settings;
     this.layers = [];
     this.wisdom = null;
 

@@ -155,18 +155,7 @@
       viewPaths = document.getElementById('view-paths'),
       fastAnimation = document.getElementById('fast-animation'),
       controller = new smartSweepers.Controller({
-        ctx: ctx,
-        framesPerSecond: 60,
-        maxTurnRate: 0.3,
-        maxSpeed: 10,
-        numMines: 40,
-        numSweepers: 30,
-        numTicks: 2000,
-        crossoverRate: 0.7,
-        mutationRate: 0.1,
-        maxPerturbation: 0.3,
-        numElite: 4,
-        numCopiesElite: 1
+        ctx: ctx
       }),
       day = controller.day;
 

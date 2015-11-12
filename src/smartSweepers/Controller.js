@@ -5,17 +5,17 @@ smartSweepers.Controller = (function(smartSweepers) {
     var key,
         i,
         defaults = Controller.defaults,
-        self = this;
+        self = this,
+        _settings = {};
 
     settings = settings || {};
 
     for (key in defaults) if (defaults.hasOwnProperty(key)) {
-      settings = settings.hasOwnProperty(key) ? settings[key] : defaults[key];
+      _settings[key] = settings.hasOwnProperty(key) ? settings[key] : defaults[key];
     }
 
-    this.settings = settings;
+    this.settings = settings = _settings;
     this.mines = [];
-    this.numWeightsForNN = 0;
 
     // Keep Per day
     this.avgMinesHistory = [];
@@ -44,7 +44,8 @@ smartSweepers.Controller = (function(smartSweepers) {
             self.mines[i] = new smartSweepers.Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight);
           }
         });
-      }
+      },
+      count: settings.numSweepers
     });
 
     for (i = 0; i < settings.numMines; i++) {
@@ -256,9 +257,9 @@ smartSweepers.Controller = (function(smartSweepers) {
     ctx: null,
     windowWidth: 400,
     windowHeight: 400,
-    numSweepers: 0,
-    numMines: 0,
-    numTicks: 0
+    numSweepers: 30,
+    numMines: 40,
+    numTicks: 2000
   };
 
   return Controller;
