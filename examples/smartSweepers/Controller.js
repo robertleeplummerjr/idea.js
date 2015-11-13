@@ -1,4 +1,4 @@
-smartSweepers.Controller = (function(smartSweepers) {
+var Controller = (function() {
   "use strict";
 
   function Controller(settings) {
@@ -35,21 +35,21 @@ smartSweepers.Controller = (function(smartSweepers) {
 
 
     this.hive = new idea.Hive({
-      initType: function() {
-        return new smartSweepers.Sweeper({
-          fieldWidth: settings.windowWidth,
-          fieldHeight: settings.windowHeight,
-          hit: function(mine) {
-            var i = self.mines.indexOf(mine);
-            self.mines[i] = new smartSweepers.Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight);
-          }
-        });
+        initType: function() {
+          return new Sweeper({
+            fieldWidth: settings.windowWidth,
+            fieldHeight: settings.windowHeight,
+            hit: function(mine) {
+              var i = self.mines.indexOf(mine);
+              self.mines[i] = new Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight);
+            }
+          });
       },
       count: settings.numSweepers
     });
 
     for (i = 0; i < settings.numMines; i++) {
-      this.mines.push(new smartSweepers.Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight));
+      this.mines.push(new Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight));
     }
   }
 
@@ -263,4 +263,4 @@ smartSweepers.Controller = (function(smartSweepers) {
   };
 
   return Controller;
-}(smartSweepers));
+}());

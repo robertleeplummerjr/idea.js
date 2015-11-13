@@ -1,4 +1,4 @@
-smartSweepers.Sweeper = (function(smartSweepers, idea) {
+var Sweeper = (function(idea) {
   "use strict";
 
   function clamp(arg, min, max) {
@@ -92,8 +92,8 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
   Sweeper.prototype = {
     /**
      * move a sweeper and update it's location relative to the field it is in
-     * @param {smartSweepers.Mine[]} mines
-     * @param {smartSweepers.Sweeper[]} sweepers
+     * @param {Mine[]} mines
+     * @param {Sweeper[]} sweepers
      * @returns {boolean}
      */
     move: function(mines, sweepers) {
@@ -216,7 +216,7 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
 
     checkForMine: function() {
       var distToMine = this.distance(this.closestMine);
-      return (distToMine < (smartSweepers.Mine.config.scale + 5));
+      return (distToMine < (Mine.config.scale + 5));
     }
   };
 
@@ -239,4 +239,4 @@ smartSweepers.Sweeper = (function(smartSweepers, idea) {
   };
 
   return Sweeper;
-})(smartSweepers, idea);
+})(idea);

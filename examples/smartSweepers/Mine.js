@@ -1,4 +1,4 @@
-smartSweepers.Mine = (function() {
+var Mine = (function() {
   "use strict";
 
   function Mine(x, y) {

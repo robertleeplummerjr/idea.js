@@ -150,6 +150,7 @@ idea.Hive = (function(idea) {
      * @returns {Hive}
      */
     calcStats: function() {
+      this.sort();
       this.totalRewards = 0;
       var bestRewards = 0,
           settings = this.settings,

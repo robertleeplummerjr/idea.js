@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+</body>
+<script src="../src/idea/base.js"></script>
+<script src="../src/idea/Hive.js"></script>
+<script src="../src/idea/NeuralNet.js"></script>
+<script src="../src/idea/Neuron.js"></script>
+<script src="../src/idea/NeuronLayer.js"></script>
+<script src="../src/idea/Wisdom.js"></script>
+<script src="travelingSalesman/Salesman.js"></script>
+<script src="travelingSalesman/Controller.js"></script>
+<script src="travelingSalesman/Route.js"></script>
+<script>
+  var canvas = document.getElementById('canvas'),
+      ctx = canvas.getContext('2d'),
+      width = canvas.width,
+      height = canvas.height,
+      controller = new Controller({
+        ctx: ctx,
+        width: width,
+        height: height
+      });
+  setInterval(function() {
+    controller.update();
+  }, 50);
+</script>
+</html>
