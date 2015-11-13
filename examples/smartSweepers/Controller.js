@@ -108,8 +108,6 @@ var Controller = (function() {
             sweeper,
             g;
 
-        this.hive.sort();
-
         for (;i < max; i++) {
           sweeper = sweepers[i];
           sweeperVerts = sweeper.worldTransform();

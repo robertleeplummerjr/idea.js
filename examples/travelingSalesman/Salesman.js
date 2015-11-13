@@ -13,7 +13,6 @@ var Salesman = (function() {
       hiddenLayerNeuronCount: 6,
       activationResponse: 1,
       maxPerturbation: 0.3,
-      scale: 5,
       sense: function() {
         return self.route.distances();
       },
@@ -25,7 +24,7 @@ var Salesman = (function() {
           self.route = experimentalRoute;
           return 1;
         }
-        return -0.01;
+        return 0;
       },
       action: function(newIndexes) {
         var i = 0,

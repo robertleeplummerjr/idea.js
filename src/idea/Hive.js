@@ -146,6 +146,7 @@ idea.Hive = (function(idea) {
      * @returns {Hive}
      */
     calcStats: function() {
+      this.sort();
       this.totalRewards = 0;
       var bestRewards = 0,
           settings = this.settings,
@@ -185,16 +186,7 @@ idea.Hive = (function(idea) {
       return this;
     },
     sort: function() {
-      this.collection.sort(function(a, b) {
-        if (a.brain.wisdom.rewards > b.brain.wisdom.rewards) {
-          return 1;
-        } else if (a.brain.wisdom.rewards < b.brain.wisdom.rewards) {
-          return -1;
-        } else {
-          return 0;
-        }
-      });
-
+      this.settings.sort.call(this, this.collection);
       return this;
     },
     learn: function() {
@@ -223,6 +215,17 @@ idea.Hive = (function(idea) {
   Hive.defaults = {
     initType: function() {
       return null;
+    },
+    sort: function() {
+      this.collection.sort(function(a, b) {
+        if (a.brain.wisdom.rewards > b.brain.wisdom.rewards) {
+          return 1;
+        } else if (a.brain.wisdom.rewards < b.brain.wisdom.rewards) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
     },
     worstRewards: 9999999,
     count: 30,

@@ -19,8 +19,8 @@
 <script>
   var canvas = document.getElementById('canvas'),
       ctx = canvas.getContext('2d'),
-      width = canvas.width,
-      height = canvas.height,
+      width = canvas.width = window.innerWidth * 0.8,
+      height = canvas.height = window.innerHeight * 0.8,
       controller = new Controller({
         ctx: ctx,
         width: width,
@@ -28,6 +28,6 @@
       });
   setInterval(function() {
     controller.update();
-  }, 50);
+  }, 1);
 </script>
 </html>

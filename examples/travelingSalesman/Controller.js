@@ -19,6 +19,7 @@ var Controller = (function() {
     });
 
     this.hive = new idea.Hive({
+      count: settings.numSalesmen,
       initType: function() {
         return new Salesman(self.route);
       }
@@ -26,6 +27,64 @@ var Controller = (function() {
   }
 
   Controller.prototype = {
+    render: function() {
+      return this
+        .drawBackground()
+        .drawPoints()
+        .drawEliteRoute();
+    },
+    drawBackground: function() {
+      var settings = this.settings,
+        ctx = settings.ctx;
+
+      ctx.clearRect(0, 0, settings.width, settings.height);
+      ctx.beginPath();
+      ctx.rect(0, 0, settings.width, settings.height);
+      ctx.fillStyle = 'rgb(32, 36, 45)';
+      ctx.fill();
+
+      return this;
+    },
+    drawPoints: function() {
+      var settings = this.settings,
+        points = this.route.points,
+        point,
+        ctx = settings.ctx,
+        i = 0,
+        max = points.length;
+
+      ctx.strokeStyle = 'rgb(255, 45, 3)';
+      for (; i < max; i++) {
+        point = points[i];
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+        ctx.stroke();
+      }
+      return this;
+    },
+    drawEliteRoute: function() {
+      var settings = this.settings,
+        hive = this.hive,
+        elites = hive.elites,
+        topEliteRoute = elites[0].route,
+        points = topEliteRoute.points,
+        point = points,
+        ctx = settings.ctx,
+        i = 0,
+        max = points.length;
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgb(255, 196, 0)';
+
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (;i < max; i++) {
+        point = points[i];
+        ctx.lineTo(point.x, point.y);
+      }
+      ctx.stroke();
+      return this;
+    },
     update: function() {
       var i = 0,
         salesman,
@@ -50,6 +109,8 @@ var Controller = (function() {
         .calcStats()
         .learn()
         .resetStats();
+
+      this.render();
 
       console.log('Best elite distance:' + this.hive.elites[0].route.distance());
 
