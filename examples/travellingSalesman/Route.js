@@ -33,10 +33,9 @@ var Route = (function() {
       return new Route(this.points.slice(0));
     },
     clean: function() {
-      var points = this.points.filter(function (n) {
+      this.points = this.points.filter(function (n) {
         return n !== null && n !== undefined;
       });
-      this.points = points;
       return this;
     },
     distance: function() {
@@ -47,6 +46,7 @@ var Route = (function() {
         i = 1,
         max = points.length;
 
+      sum += distance(points[points.length - 1], points[0]);
       for(;i < max; i++) {
         point = points[i];
         sum += distance(previousPoint, point);
@@ -62,6 +62,7 @@ var Route = (function() {
         i = 1,
         max = points.length;
 
+      distances.push(distance(points[points.length - 1], points[0]));
       for(;i < max; i++) {
         point = points[i];
         distances.push(distance(previousPoint, point));

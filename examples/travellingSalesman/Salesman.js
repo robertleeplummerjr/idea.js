@@ -2,19 +2,20 @@ var Salesman = (function() {
   function Salesman(route) {
     var self = this;
     this.originalRoute = route;
+    this.originalRouteDistances = route.distances();
     this.route = route.clone();
     this.previousDistance = 999999999999999;
     this.experimentalRoute = null;
     this.brain = new idea.NeuralNet({
-      inputCount: route.points.length - 1,
+      inputCount: route.points.length,
       outputCount: route.points.length,
       bias: -1,
       hiddenLayerCount: 1,
-      hiddenLayerNeuronCount: 6,
+      hiddenLayerNeuronCount: route.points.length,
       activationResponse: 1,
       maxPerturbation: 0.3,
       sense: function() {
-        return self.route.distances();
+        return self.originalRouteDistances;
       },
       goal: function() {
         var experimentalRoute = self.experimentalRoute,
@@ -31,34 +32,22 @@ var Salesman = (function() {
           newIndex,
           newRoutePoints = [],
           point,
-          count = self.originalRoute.points.length,
-          route = self.originalRoute;
+          route = self.originalRoute,
+          count = route.points.length;
 
         for(; i < count; i++) {
           point = route.points[i];
           newIndex = Math.floor(newIndexes[i] * count);
           while (newRoutePoints[newIndex]) {
             newIndex++;
-            if (isNaN(newIndex)) {
-              throw new Error('Something blew up');
-              break;
-            }
           }
           newRoutePoints[newIndex] = point;
         }
 
-        self.experimentalRoute = (new Route(newRoutePoints))
-          .clean();
+        self.experimentalRoute = (new Route(newRoutePoints)).clean();
       }
     });
   }
-
-  Salesman.prototype = {
-    think: function() {
-      this.brain.think();
-      return this;
-    }
-  };
 
   return Salesman;
 })();

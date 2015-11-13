@@ -6,6 +6,7 @@
 </head>
 <body>
 <canvas id="canvas"></canvas>
+<div>Distance: <span id="distance"></span></div>
 </body>
 <script src="../src/idea/base.js"></script>
 <script src="../src/idea/Hive.js"></script>
@@ -18,6 +19,7 @@
 <script src="travellingSalesman/Route.js"></script>
 <script>
   var canvas = document.getElementById('canvas'),
+      distance = document.getElementById('distance'),
       ctx = canvas.getContext('2d'),
       width = canvas.width = window.innerWidth * 0.8,
       height = canvas.height = window.innerHeight * 0.8,
@@ -26,8 +28,12 @@
         width: width,
         height: height
       });
+
   setInterval(function() {
     controller.update();
-  }, 1);
+    if (controller.hive.elites.length > 0) {
+      distance.innerHTML = controller.hive.elites[0].route.distance().toString();
+    }
+  }, 0);
 </script>
 </html>

@@ -66,18 +66,19 @@ var Controller = (function() {
       var settings = this.settings,
         hive = this.hive,
         elites = hive.elites,
-        topEliteRoute = elites[0].route,
+        topEliteRoute = elites.length > 1 ? elites[0].experimentalRoute : hive.collection[0].experimentalRoute,
         points = topEliteRoute.points,
         point = points,
         ctx = settings.ctx,
         i = 0,
-        max = points.length;
+        max = points.length,
+        lastPoint = points[max - 1];
 
       ctx.lineWidth = 1;
       ctx.strokeStyle = 'rgb(255, 196, 0)';
 
       ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
+      ctx.moveTo(lastPoint.x, lastPoint.y);
       for (;i < max; i++) {
         point = points[i];
         ctx.lineTo(point.x, point.y);
@@ -95,11 +96,13 @@ var Controller = (function() {
       if (this.ticks++ < settings.numTicks) {
         for (; i < max; i++) {
           salesman = hive.collection[i];
-          salesman.think();
+          salesman.brain.think();
         }
       } else {
         this.beginNewDay();
       }
+
+      this.render();
 
       return this;
     },
@@ -109,10 +112,6 @@ var Controller = (function() {
         .calcStats()
         .learn()
         .resetStats();
-
-      this.render();
-
-      console.log('Best elite distance:' + this.hive.elites[0].route.distance());
 
       this.day++;
       this.ticks = 0;
@@ -124,10 +123,10 @@ var Controller = (function() {
   Controller.defaults = {
     ctx: null,
     numSalesmen: 30,
-    numPoints: 100,
+    numPoints: 10,
     width: 1,
     height: 1,
-    numTicks: 10
+    numTicks: 2000
   };
   return Controller;
 })();
