@@ -69,6 +69,26 @@ var Route = (function() {
         previousPoint = point;
       }
       return distances;
+    },
+    flatten: function() {
+      var points = this.points,
+        point,
+        i = 0,
+        max = points.length,
+        flat = [];
+
+      for (; i < max; i++) {
+        point = points[i];
+        flat.push(point.x);
+        flat.push(point.y);
+      }
+      return flat;
+    },
+    anyPoint: function() {
+      var points = this.points,
+        i = Math.floor(Math.random() * (points.length - 1));
+
+      return points[i];
     }
   };
 

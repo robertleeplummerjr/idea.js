@@ -2,16 +2,16 @@ var Salesman = (function() {
   function Salesman(route) {
     var self = this;
     this.originalRoute = route;
-    this.originalRouteDistances = route.distances();
+    this.originalRouteDistances = route.flatten();
     this.route = route.clone();
     this.previousDistance = 999999999999999;
     this.experimentalRoute = null;
     this.brain = new idea.NeuralNet({
-      inputCount: route.points.length,
+      inputCount: route.points.length * 2,
       outputCount: route.points.length,
       bias: -1,
       hiddenLayerCount: 1,
-      hiddenLayerNeuronCount: route.points.length,
+      hiddenLayerNeuronCount: route.points.length * 1.5,
       activationResponse: 1,
       maxPerturbation: 0.3,
       sense: function() {

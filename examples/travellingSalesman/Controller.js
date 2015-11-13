@@ -123,10 +123,10 @@ var Controller = (function() {
   Controller.defaults = {
     ctx: null,
     numSalesmen: 30,
-    numPoints: 10,
+    numPoints: 20,
     width: 1,
     height: 1,
-    numTicks: 2000
+    numTicks: 200
   };
   return Controller;
 })();
