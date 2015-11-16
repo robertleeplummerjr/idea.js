@@ -79,6 +79,7 @@ var Route = (function() {
 
       for (; i < max; i++) {
         point = points[i];
+        flat.push(i);
         flat.push(point.x);
         flat.push(point.y);
       }

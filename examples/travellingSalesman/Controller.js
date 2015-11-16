@@ -126,7 +126,7 @@ var Controller = (function() {
     numPoints: 20,
     width: 1,
     height: 1,
-    numTicks: 200
+    numTicks: 5
   };
   return Controller;
 })();
