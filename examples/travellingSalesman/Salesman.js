@@ -14,10 +14,10 @@ var Salesman = (function() {
       inputCount: this.originalRouteDistances.length,
       outputCount: route.points.length,
       bias: -1,
-      hiddenLayerCount: 1,
-      hiddenLayerNeuronCount: route.points.length * 1.5,
+      hiddenLayerCount: 3,
+      hiddenLayerNeuronCount: route.points.length / 2,
       activationResponse: 1,
-      maxPerturbation: 0.1,
+      maxPerturbation: 1,
       sense: function() {
         return self.originalRouteDistances;
       },
@@ -55,15 +55,13 @@ var Salesman = (function() {
         if (d < self.previousDistance) {
           self.previousDistance = d;
           self.route = experimentalRoute;
-          reward++;
-        } else if (d > self.previousDistance) {
-          reward-=0.5;
+          reward+=1000;
         }
 
-        if (self.combinations.length > self.previousCombinationsCount) {
+        /*if (self.combinations.length > self.previousCombinationsCount) {
           self.previousCombinationsCount = self.combinations.length;
-          reward+=0.2;
-        }
+          reward+=0.1;
+        }*/
 
         return reward;
       }
