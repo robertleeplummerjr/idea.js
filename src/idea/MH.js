@@ -1,4 +1,7 @@
-idea.Optimum = (function() {
+/**
+ * metaheuristic / genetic algorithm
+ */
+idea.MH = idea.MetaHeuristic = (function() {
   function clone(array) {
     return array.slice(0);
   }
@@ -58,10 +61,10 @@ idea.Optimum = (function() {
     return Math.sqrt(dx * dx + dy * dy);
   }
 
-  function Optimum(settings) {
+  function MH(settings) {
     settings = settings || {};
 
-    var defaults = Optimum.defaults,
+    var defaults = MH.defaults,
       _settings = {},
       i;
 
@@ -88,7 +91,7 @@ idea.Optimum = (function() {
     this.optimise();
   }
 
-  Optimum.prototype = {
+  MH.prototype = {
     find: function () {
       this.currentGeneration++;
       return this
@@ -356,7 +359,7 @@ idea.Optimum = (function() {
     }
   };
 
-  Optimum.defaults = {
+  MH.defaults = {
     count: 30,
     crossoverProbability: 0.9,
     mutationProbability: 0.01,
@@ -368,5 +371,5 @@ idea.Optimum = (function() {
     }
   };
 
-  return Optimum;
+  return MH;
 })();
