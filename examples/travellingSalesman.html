@@ -7,6 +7,7 @@
 <body>
 <canvas id="canvas"></canvas>
 <div>Distance: <span id="distance"></span></div>
+<div>Elites Distance: <span id="elitesDistance"></span></div>
 </body>
 <script src="../src/idea/base.js"></script>
 <script src="../src/idea/Hive.js"></script>
@@ -31,9 +32,7 @@
 
   setInterval(function() {
     controller.update();
-    if (controller.hive.elites.length > 0) {
-      distance.innerHTML = controller.hive.elites[0].route.distance().toString();
-    }
+    distance.innerHTML = controller.foundShortestRoute.distance.toString();
   }, 0);
 </script>
 </html>

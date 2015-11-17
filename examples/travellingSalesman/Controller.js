@@ -17,7 +17,7 @@ var Controller = (function() {
       height: settings.height,
       width: settings.width
     });
-
+    this.foundShortestRoute = null;
     this.hive = new idea.Hive({
       count: settings.numSalesmen,
       initType: function() {
@@ -31,7 +31,7 @@ var Controller = (function() {
       return this
         .drawBackground()
         .drawPoints()
-        .drawEliteRoute();
+        .drawRoute();
     },
     drawBackground: function() {
       var settings = this.settings,
@@ -62,12 +62,10 @@ var Controller = (function() {
       }
       return this;
     },
-    drawEliteRoute: function() {
+    drawRoute: function() {
+      if (this.foundShortestRoute === null) return this;
       var settings = this.settings,
-        hive = this.hive,
-        elites = hive.elites,
-        topEliteRoute = elites.length > 1 ? elites[0].experimentalRoute : hive.collection[0].experimentalRoute,
-        points = topEliteRoute.points,
+        points = this.foundShortestRoute.points,
         point = points,
         ctx = settings.ctx,
         i = 0,
@@ -97,6 +95,12 @@ var Controller = (function() {
         for (; i < max; i++) {
           salesman = hive.collection[i];
           salesman.brain.think();
+          if (this.foundShortestRoute === null) {
+            this.foundShortestRoute = salesman.route;
+          }
+          if (salesman.route.distance < this.foundShortestRoute.distance) {
+            this.foundShortestRoute = salesman.route;
+          }
         }
       } else {
         this.beginNewDay();
@@ -126,7 +130,7 @@ var Controller = (function() {
     numPoints: 20,
     width: 1,
     height: 1,
-    numTicks: 5
+    numTicks: 20
   };
   return Controller;
 })();

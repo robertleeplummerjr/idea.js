@@ -3,12 +3,47 @@ var Route = (function() {
     return Math.sqrt((p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y));
   }
 
+  function checkLineIntersection(line1Start, line1End, line2Start, line2End) {
+    // if the lines intersect, the result contains the x and y of the intersection (treating the lines as infinite) and booleans for whether line segment 1 or line segment 2 contain the point
+    var a,
+        b,
+        numerator1,
+        numerator2,
+        denominator = (
+                (line2End.y - line2Start.y)
+                * (line1End.x - line1Start.x)
+            )
+            - (
+                (line2End.x - line2Start.x)
+                * (line1End.y - line1Start.y)
+            );
+
+    if (denominator == 0) {
+      return false;
+    }
+
+    a = line1Start.y - line2Start.y;
+    b = line1Start.x - line2Start.x;
+    numerator1 = ((line2End.x - line2Start.x) * a) - ((line2End.y - line2Start.y) * b);
+    numerator2 = ((line1End.x - line1Start.x) * a) - ((line1End.y - line1Start.y) * b);
+    a = numerator1 / denominator;
+    b = numerator2 / denominator;
+
+    if (a > 0 && a < 1) {
+      return true;
+    } else if (b > 0 && b < 1) {
+      return true;
+    }
+    return false;
+  }
+
   function Route(points) {
     if (points instanceof Array) {
       this.points = points;
     } else {
       this.points = [];
     }
+    this.distance = null;
   }
 
   Route.prototype = {
@@ -38,7 +73,7 @@ var Route = (function() {
       });
       return this;
     },
-    distance: function() {
+    updateDistance: function() {
       var sum = 0,
         points = this.points,
         point,
@@ -52,7 +87,8 @@ var Route = (function() {
         sum += distance(previousPoint, point);
         previousPoint = point;
       }
-      return sum;
+      this.distance = sum;
+      return this;
     },
     distances: function() {
       var distances = [],
@@ -73,16 +109,28 @@ var Route = (function() {
     flatten: function() {
       var points = this.points,
         point,
+        distances = this.distances(),
+        distance,
         i = 0,
         max = points.length,
         flat = [];
 
       for (; i < max; i++) {
         point = points[i];
-        flat.push(i);
         flat.push(point.x);
         flat.push(point.y);
+        flat.push(i);
       }
+
+      i = 0;
+      max = distances.length;
+
+      for (; i < max; i++) {
+        distance = distances[i];
+        flat.push(distance);
+      }
+
+      flat.push(this.intersectCount());
       return flat;
     },
     anyPoint: function() {
@@ -90,6 +138,34 @@ var Route = (function() {
         i = Math.floor(Math.random() * (points.length - 1));
 
       return points[i];
+    },
+    intersectCount: function() {
+      var points = this.points,
+          line1Start,
+          line1End,
+          line2Start,
+          line2End,
+          i = 0,
+          j,
+          sum = 0,
+          max = points.length;
+
+      for (; i < max;) {
+        line1Start = points[i++];
+        line1End = points[i++];
+        j = 0;
+        for (; j < max; i++) {
+          line2Start = points[j++];
+          line2End = points[j++];
+          if (line2Start === line1Start || line2Start === line1End) continue;
+          if (line2End === line1Start || line2End === line1End) continue;
+          if (checkLineIntersection(line1Start, line1End, line2Start, line2End)) {
+            sum++;
+          }
+        }
+      }
+
+      return sum;
     }
   };
 
