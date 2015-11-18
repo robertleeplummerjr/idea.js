@@ -92,16 +92,14 @@ var Sweeper = (function(idea) {
   Sweeper.prototype = {
     /**
      * move a sweeper and update it's location relative to the field it is in
-     * @param {Mine[]} mines
      * @param {Sweeper[]} sweepers
      * @returns {boolean}
      */
-    move: function(mines, sweepers) {
+    move: function(sweepers) {
       this
-          .updateClosestMine(mines)
-          .updateClosestSweeper(sweepers);
-
-      this.brain.think();
+          .updateClosestMine()
+          .updateClosestSweeper(sweepers)
+          .brain.think();
 
       //calculate steering forces
       var settings = this.settings,
@@ -139,6 +137,8 @@ var Sweeper = (function(idea) {
       if (position.y < 0) {
         position.y = settings.fieldHeight;
       }
+
+      return this;
     },
     worldTransform: function() {
       var points = [
@@ -169,12 +169,11 @@ var Sweeper = (function(idea) {
         .translate(this.position.x, this.position.y)
         .transformPoints(points);
     },
-
-
-    updateClosestMine: function(mines) {
+    updateClosestMine: function() {
       var closestMineDist = 99999,
           i = 0,
           mine,
+          mines = this.settings.mines,
           distToMine;
 
       for (; i < mines.length; i++) {
@@ -233,6 +232,7 @@ var Sweeper = (function(idea) {
 
   Sweeper.defaults = {
     hit: null,
+    mines: null,
     fieldHeight: 1,
     fieldWidth: 1,
     maxTurnRate: 1

@@ -1,22 +1,23 @@
 /**
  * meta heuristic / genetic algorithm
  */
-idea.MH = idea.MetaHeuristic = (function() {
+idea.MetaHeuristic = (function() {
   function clone(array) {
     return array.slice(0);
   }
 
   function shuffle(array) {
     var j,
-      x,
-      i = array.length - 1;
+        x,
+        i = array.length - 1;
 
-    while (i) {
+    while (i > -1) {
       j = Math.random() * i;
       x = array[--i];
       array[i] = array[j];
       array[j] = x;
     }
+
     return this;
   }
 
@@ -35,19 +36,10 @@ idea.MH = idea.MetaHeuristic = (function() {
     return array[index - 1];
   }
 
-  function swap(array, x, y) {
-    if(x > array.length || y > array.length || x === y) {
-      return;
-    }
-    var tem = array[x];
-    array[x] = array[y];
-    array[y] = tem;
-  }
-
-  function MH(settings) {
+  function MetaHeuristic(settings) {
     settings = settings || {};
 
-    var defaults = MH.defaults,
+    var defaults = MetaHeuristic.defaults,
       _settings = {},
       i;
 
@@ -64,16 +56,14 @@ idea.MH = idea.MetaHeuristic = (function() {
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
       _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
-    this.settings = settings = _settings;
+    this.settings = _settings;
 
-    for(i = 0; i < settings.count; i++) {
-      this.heuristics.push(this.randomPossibility());
-    }
-
-    this.improve();
+    this
+        .generateHeuristics()
+        .improve();
   }
 
-  MH.prototype = {
+  MetaHeuristic.prototype = {
     think: function () {
       this.thinkCount++;
       return this
@@ -88,11 +78,11 @@ idea.MH = idea.MetaHeuristic = (function() {
         max = this.settings.count,
         heuristics = this.heuristics,
         best = this.bestValue,
-        bestClone = clone(best);
+        bestClone = best.clone();
 
       parents.push(heuristics[this.bestPosition]);
-      parents.push(this.mutate(bestClone));
-      parents.push(this.pushMutate(bestClone));
+      parents.push(bestClone.mutate());
+      parents.push(bestClone.pushMutate());
       parents.push(bestClone);
 
       this.loadRoulette();
@@ -116,7 +106,9 @@ idea.MH = idea.MetaHeuristic = (function() {
           queue.push(i);
         }
       }
+
       shuffle(queue);
+
       for(i = 0, j = queue.length - 1; i < j; i += 2) {
         this.crossover(queue[i], queue[i+1]);
       }
@@ -150,7 +142,7 @@ idea.MH = idea.MetaHeuristic = (function() {
         dy = next(py, yi);
         px.splice(xi, 1);
         py.splice(yi, 1);
-        c = dx.rewards < dy.rewards ? dx : dy;
+        c = dx.rewards > dy.rewards ? dx : dy;
         solution.push(c);
       }
 
@@ -177,7 +169,7 @@ idea.MH = idea.MetaHeuristic = (function() {
         dy = previous(py, yi);
         px.splice(xi, 1);
         py.splice(yi, 1);
-        c = dx.rewards < dy.rewards ? dx : dy;
+        c = dx.rewards > dy.rewards ? dx : dy;
         solution.push(c);
       }
 
@@ -193,52 +185,15 @@ idea.MH = idea.MetaHeuristic = (function() {
       for(; i < max; i++) {
         if(Math.random() < mutationProbability) {
           if(Math.random() > 0.5) {
-            heuristics[i] = this.pushMutate(heuristics[i]);
+            heuristics[i].pushMutate();
           } else {
-            heuristics[i] = this.mutate(heuristics[i]);
+            heuristics[i].mutate();
           }
           i--;
         }
       }
 
       return this;
-    },
-    mutate: function (sequence) {
-      this.mutationTimes++;
-      var m,
-        n,
-        i = 0,
-        j;
-      // m and n refers to the actual index in the array
-      // m range from 0 to length-2, n range from 2...length-m
-      do {
-        m = Math.random() * (sequence.length - 2);
-        n = Math.random() * sequence.length;
-      } while (m>=n);
-
-      for(j= (n - m + 1) >> 1; i < j; i++) {
-        swap(sequence, m + i, n - i);
-      }
-
-      return sequence;
-    },
-    pushMutate: function (sequence) {
-      this.mutationTimes++;
-      var m,n;
-      do {
-        m = Math.random() * (sequence.length>>1);
-        n = Math.random() * sequence.length;
-      } while (m >= n);
-
-      var s1 = sequence.slice(0, m),
-        s2 = sequence.slice(m, n),
-        s3 = sequence.slice(n, sequence.length);
-
-      return clone(
-        s2
-          .concat(s1)
-          .concat(s3)
-      );
     },
     improve: function () {
       var i = 0,
@@ -255,7 +210,8 @@ idea.MH = idea.MetaHeuristic = (function() {
         values[i] = value = settings.goal(heuristic);
 
         if(value < currentBestValue) {
-          currentBestValue = value;
+          this.bestPosition = i;
+          this.bestValue = currentBestValue = value;
           this.improvements++;
         }
       }
@@ -295,37 +251,37 @@ idea.MH = idea.MetaHeuristic = (function() {
         max = roulette.length;
 
       for(i = 0; i < max; i++) {
-        if(rand <= roulette[i] ) {
+        if(rand <= roulette[i]) {
           return i;
         }
       }
 
       return -1;
     },
-    randomPossibility: function () {
-      var array = [],
-        settings = this.settings,
+    generateHeuristics: function () {
+      var settings = this.settings,
         possibilities = settings.possibilities,
-        count = possibilities.length,
+        heuristic,
+        heuristics = this.heuristics,
+        count = settings.count,
         i = 0;
 
       for(; i < count; i++) {
-        array.push(new idea.Heuristic(possibilities[i]));
+        heuristic = new idea.Heuristic(possibilities);
+        shuffle(heuristic.items);
+        heuristics.push(heuristic);
       }
-
-      return shuffle(array);
+      return this;
     }
   };
 
-  MH.defaults = {
+  MetaHeuristic.defaults = {
     count: 30,
     learnProbability: 0.9,
     mutationProbability: 0.01,
     possibilities: [],
-    sense: null,
-    goal: null,
-    action: null
+    goal: null
   };
 
-  return MH;
+  return MetaHeuristic;
 })();

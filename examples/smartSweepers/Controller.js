@@ -33,17 +33,17 @@ var Controller = (function() {
     this.fastRender = false;
     this.viewPaths = false;
 
-
     this.hive = new idea.Hive({
-        initType: function() {
-          return new Sweeper({
-            fieldWidth: settings.windowWidth,
-            fieldHeight: settings.windowHeight,
-            hit: function(mine) {
-              var i = self.mines.indexOf(mine);
-              self.mines[i] = new Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight);
-            }
-          });
+      initType: function() {
+        return new Sweeper({
+          fieldWidth: settings.windowWidth,
+          fieldHeight: settings.windowHeight,
+          hit: function(mine) {
+            var i = self.mines.indexOf(mine);
+            self.mines[i] = new Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight);
+          },
+          mines: self.mines
+        });
       },
       count: settings.numSweepers
     });
@@ -202,7 +202,7 @@ var Controller = (function() {
         if (this.ticks++ < settings.numTicks) {
           for (; i < max; i++) {
             sweeper = hive.collection[i];
-            sweeper.move(this.mines, hive.collection);
+            sweeper.move(hive.collection);
           }
         } else {
           this.beginNewDay();
