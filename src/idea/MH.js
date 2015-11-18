@@ -1,5 +1,5 @@
 /**
- * metaheuristic / genetic algorithm
+ * meta heuristic / genetic algorithm
  */
 idea.MH = idea.MetaHeuristic = (function() {
   function clone(array) {
@@ -11,20 +11,13 @@ idea.MH = idea.MetaHeuristic = (function() {
       x,
       i = array.length - 1;
 
-    while(i) {
-      j = randomNumber(i);
+    while (i) {
+      j = Math.random() * i;
       x = array[--i];
       array[i] = array[j];
       array[j] = x;
     }
     return this;
-  }
-
-  function deleteByValue(array, value) {
-    var pos = array.indexOf(value);
-    if (pos > -1) {
-      array.splice(pos, 1);
-    }
   }
 
   function next(array, index) {
@@ -43,22 +36,12 @@ idea.MH = idea.MetaHeuristic = (function() {
   }
 
   function swap(array, x, y) {
-    if(x>array.length || y>array.length || x === y) {return}
+    if(x > array.length || y > array.length || x === y) {
+      return;
+    }
     var tem = array[x];
     array[x] = array[y];
     array[y] = tem;
-  }
-
-  function randomNumber(boundary) {
-    return parseInt(Math.random() * boundary);
-  }
-
-  function distance(p1, p2) {
-    return euclidean(p1.x-p2.x, p1.y-p2.y);
-  }
-
-  function euclidean(dx, dy) {
-    return Math.sqrt(dx * dx + dy * dy);
   }
 
   function MH(settings) {
@@ -68,13 +51,13 @@ idea.MH = idea.MetaHeuristic = (function() {
       _settings = {},
       i;
 
-    this.population = [];
+    this.heuristics = [];
     this.fitnessValues = [];
     this.roulette = [];
     this.mutationTimes = 0;
-    this.currentGeneration = 0;
+    this.thinkCount = 0;
     this.values = [];
-    this.unchangedGenerations = 0;
+    this.improvements = 0;
     this.bestPosition = null;
     this.bestValue = null;
 
@@ -82,55 +65,54 @@ idea.MH = idea.MetaHeuristic = (function() {
       _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
     this.settings = settings = _settings;
-    this.distances = this.countDistances();
 
-    for(i = 0; i<settings.count; i++) {
-      this.population.push(this.randomIndividual(settings.collection.length));
+    for(i = 0; i < settings.count; i++) {
+      this.heuristics.push(this.randomPossibility());
     }
 
-    this.optimise();
+    this.improve();
   }
 
   MH.prototype = {
-    find: function () {
-      this.currentGeneration++;
+    think: function () {
+      this.thinkCount++;
       return this
         .selection()
-        .crossover()
+        .learn()
         .morph()
-        .optimise();
+        .improve();
     },
     selection: function () {
       var parents = [],
         i = 4,
         max = this.settings.count,
-        population = this.population,
+        heuristics = this.heuristics,
         best = this.bestValue,
         bestClone = clone(best);
 
-      parents.push(population[this.bestPosition]);
+      parents.push(heuristics[this.bestPosition]);
       parents.push(this.mutate(bestClone));
       parents.push(this.pushMutate(bestClone));
       parents.push(bestClone);
 
-      this.setRoulette();
+      this.loadRoulette();
       for(; i < max; i++) {
-        parents.push(population[this.wheelOut()]);
+        parents.push(heuristics[this.wheelOut()]);
       }
-      this.population = parents;
+      this.heuristics = parents;
 
       return this;
     },
-    crossover: function () {
+    learn: function () {
       var queue = [],
         i = 0,
         settings = this.settings,
         max = settings.count,
-        crossoverProbability = settings.crossoverProbability,
+        learnProbability = settings.learnProbability,
         j;
 
       for(; i < max; i++) {
-        if(Math.random() < crossoverProbability) {
+        if(Math.random() < learnProbability) {
           queue.push(i);
         }
       }
@@ -142,29 +124,33 @@ idea.MH = idea.MetaHeuristic = (function() {
       return this;
     },
     crossover: function (x, y) {
-      var population = this.population;
-      population[x] = this.getNextChild(x, y);
-      population[y] = this.getPreviousChild(x, y);
+      var heuristics = this.heuristics;
+      heuristics[x] = this.getNextChild(x, y);
+      heuristics[y] = this.getPreviousChild(x, y);
       return this;
     },
-    getNextChild: function (fun, x, y) {
+    getNextChild: function (x, y) {
       var solution = [],
-        population = this.population,
-        px = clone(population[x]),
-        py = clone(population[y]),
+        heuristics = this.heuristics,
+        px = heuristics[x].clone(),
+        py = heuristics[y].clone(),
+        xi,
+        yi,
         dx,
         dy,
-        distances = this.distances,
-        c = px[randomNumber(px.length)];
+        i = Math.random() * px.length,
+        c = px[i];
 
       solution.push(c);
 
       while(px.length > 1) {
-        dx = next(px, px.indexOf(c));
-        dy = next(py, py.indexOf(c));
-        deleteByValue(px, c);
-        deleteByValue(py, c);
-        c = distances[c][dx] < distances[c][dy] ? dx : dy;
+        xi = i;
+        yi = py.indexOf(c);
+        dx = next(px, xi);
+        dy = next(py, yi);
+        px.splice(xi, 1);
+        py.splice(yi, 1);
+        c = dx.rewards < dy.rewards ? dx : dy;
         solution.push(c);
       }
 
@@ -172,29 +158,33 @@ idea.MH = idea.MetaHeuristic = (function() {
     },
     getPreviousChild: function (fun, x, y) {
       var solution = [],
-        population = this.population,
-        px = clone(population[x]),
-        py = clone(population[y]),
+        heuristics = this.heuristics,
+        px = heuristics[x].clone(),
+        py = heuristics[y].clone(),
+        xi,
+        yi,
         dx,
         dy,
-        distances = this.distances,
-        c = px[randomNumber(px.length)];
+        i = Math.random() * px.length,
+        c = px[i];
 
       solution.push(c);
 
       while(px.length > 1) {
-        dx = previous(px, px.indexOf(c));
-        dy = previous(py, py.indexOf(c));
-        deleteByValue(px, c);
-        deleteByValue(py, c);
-        c = distances[c][dx] < distances[c][dy] ? dx : dy;
+        xi = i;
+        yi = py.indexOf(c);
+        dx = previous(px, xi);
+        dy = previous(py, yi);
+        px.splice(xi, 1);
+        py.splice(yi, 1);
+        c = dx.rewards < dy.rewards ? dx : dy;
         solution.push(c);
       }
 
       return solution;
     },
     morph: function () {
-      var population = this.population,
+      var heuristics = this.heuristics,
         settings = this.settings,
         mutationProbability = settings.mutationProbability,
         max = settings.count,
@@ -203,9 +193,9 @@ idea.MH = idea.MetaHeuristic = (function() {
       for(; i < max; i++) {
         if(Math.random() < mutationProbability) {
           if(Math.random() > 0.5) {
-            population[i] = this.pushMutate(population[i]);
+            heuristics[i] = this.pushMutate(heuristics[i]);
           } else {
-            population[i] = this.mutate(population[i]);
+            heuristics[i] = this.mutate(heuristics[i]);
           }
           i--;
         }
@@ -222,12 +212,12 @@ idea.MH = idea.MetaHeuristic = (function() {
       // m and n refers to the actual index in the array
       // m range from 0 to length-2, n range from 2...length-m
       do {
-        m = this.randomNumber(sequence.length - 2);
-        n = this.randomNumber(sequence.length);
+        m = Math.random() * (sequence.length - 2);
+        n = Math.random() * sequence.length;
       } while (m>=n);
 
       for(j= (n - m + 1) >> 1; i < j; i++) {
-        sequence.swap(m+i, n-i);
+        swap(sequence, m + i, n - i);
       }
 
       return sequence;
@@ -236,8 +226,8 @@ idea.MH = idea.MetaHeuristic = (function() {
       this.mutationTimes++;
       var m,n;
       do {
-        m = this.randomNumber(sequence.length>>1);
-        n = this.randomNumber(sequence.length);
+        m = Math.random() * (sequence.length>>1);
+        n = Math.random() * sequence.length;
       } while (m >= n);
 
       var s1 = sequence.slice(0, m),
@@ -250,35 +240,29 @@ idea.MH = idea.MetaHeuristic = (function() {
           .concat(s3)
       );
     },
-    optimise: function () {
+    improve: function () {
       var i = 0,
-        population = this.population,
-        max = population.length,
+        heuristics = this.heuristics,
+        max = heuristics.length,
         values = this.values,
-        currentBestValue = values[0];
+        value,
+        currentBestValue = values[0],
+        heuristic,
+        settings = this.settings;
 
       for(; i < max; i++) {
-        values[i] = this.evaluate(population[i]);
-      }
+        heuristic = heuristics[i];
+        values[i] = value = settings.goal(heuristic);
 
-      for(i = 1; i < max; i++) {
-        if(values[i] < currentBestValue) {
-          this.bestValue = values[i];
-          this.bestPosition = i;
+        if(value < currentBestValue) {
+          currentBestValue = value;
+          this.improvements++;
         }
-      }
-
-      this.bestValue = clone(this.bestValue);
-
-      if(this.bestValue === null || this.bestValue > this.bestValue) {
-        this.unchangedGenerations = 0;
-      } else {
-        this.unchangedGenerations++;
       }
 
       return this;
     },
-    setRoulette: function () {
+    loadRoulette: function () {
       var i = 0,
         settings = this.settings,
         max = settings.count,
@@ -318,57 +302,29 @@ idea.MH = idea.MetaHeuristic = (function() {
 
       return -1;
     },
-    randomIndividual: function (n) {
+    randomPossibility: function () {
       var array = [],
+        settings = this.settings,
+        possibilities = settings.possibilities,
+        count = possibilities.length,
         i = 0;
 
-      for(; i < n; i++) {
-        array.push(i);
+      for(; i < count; i++) {
+        array.push(new idea.Heuristic(possibilities[i]));
       }
 
       return shuffle(array);
-    },
-    evaluate: function (indivial) {
-      var distances = this.distances,
-        sum = distances[indivial[0]][indivial[indivial.length - 1]],
-        i = 1,
-        max = indivial.length;
-
-      for(; i < max; i++) {
-        sum += distances[indivial[i]][indivial[i-1]];
-      }
-
-      return sum;
-    },
-    countDistances: function () {
-      var settings = this.settings,
-        measure = settings.measure,
-        max = settings.collection.length,
-        distances = [],
-        i = 0,
-        j;
-
-      for(; i < max; i++) {
-        distances[i] = [];
-        for(j = 0; j < max; j++) {
-          distances[i][j] = measure.call(this, i, j);
-        }
-      }
-
-      return distances;
     }
   };
 
   MH.defaults = {
     count: 30,
-    crossoverProbability: 0.9,
+    learnProbability: 0.9,
     mutationProbability: 0.01,
-    collection: [],
-    measure: function(l, r) {
-      var settings = this.settings,
-        collection = settings.collection;
-      return Math.floor(distance(collection[l], collection[r]))
-    }
+    possibilities: [],
+    sense: null,
+    goal: null,
+    action: null
   };
 
   return MH;
