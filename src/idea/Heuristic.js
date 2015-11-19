@@ -15,10 +15,12 @@ idea.Heuristic = (function() {
   }
 
   Heuristic.prototype = {
-    reward: function() {
-      this.rewards++;
+    reward: function(reward) {
+      reward = (reward === undefined ? 1 : reward);
+      this.rewards += reward;
       return this;
     },
+
     clone: function() {
       var sequence = this.sequence,
           copy = new Heuristic(sequence.slice(0));

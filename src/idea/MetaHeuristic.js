@@ -44,11 +44,8 @@ idea.MetaHeuristic = (function() {
       i;
 
     this.heuristics = [];
-    this.fitnessValues = [];
-    this.roulette = [];
     this.mutationTimes = 0;
     this.thinkCount = 0;
-    this.values = [];
     this.improvements = 0;
     this.bestPosition = null;
     this.bestValue = null;
@@ -67,12 +64,12 @@ idea.MetaHeuristic = (function() {
     think: function () {
       this.thinkCount++;
       return this
-        .selection()
+        .optimize()
         .learn()
         .morph()
         .improve();
     },
-    selection: function () {
+    optimize: function () {
       var parents = [],
         i = 4,
         max = this.settings.count,
@@ -85,9 +82,9 @@ idea.MetaHeuristic = (function() {
       parents.push(bestClone.pushMutate());
       parents.push(bestClone);
 
-      this.loadRoulette();
+      this.sort();
       for(; i < max; i++) {
-        parents.push(heuristics[this.wheelOut()]);
+        parents.push(this.pickGoodHeuristic());
       }
       this.heuristics = parents;
 
@@ -199,64 +196,37 @@ idea.MetaHeuristic = (function() {
       var i = 0,
         heuristics = this.heuristics,
         max = heuristics.length,
-        values = this.values,
-        value,
-        currentBestValue = values[0],
+        currentBestValue = heuristics[0].rewards,
         heuristic,
         settings = this.settings;
 
       for(; i < max; i++) {
         heuristic = heuristics[i];
-        values[i] = value = settings.goal(heuristic);
+        heuristic.reward(settings.goal(heuristic));
 
-        if(value < currentBestValue) {
+        if(heuristic.rewards < currentBestValue) {
           this.bestPosition = i;
-          this.bestValue = currentBestValue = value;
+          this.bestValue = currentBestValue = heuristic.rewards;
           this.improvements++;
         }
       }
 
       return this;
     },
-    loadRoulette: function () {
-      var i = 0,
-        settings = this.settings,
-        max = settings.count,
-        values = this.values,
-        fitnessValues = this.fitnessValues,
-        roulette = this.roulette,
-        sum = 0;
+    sort: function () {
+      var heuristics = this.heuristics;
 
-      //calculate all the fitness
-      for(; i < max; i++) {
-        fitnessValues[i] = 1 / values[i];
-      }
-      //set the roulette
-      for(i = 0; i < max; i++) {
-        sum += fitnessValues[i];
-      }
-      for(i = 0; i < max; i++) {
-        roulette[i] = fitnessValues[i] / sum;
-      }
-      for(i = 1; i < max; i++) {
-        roulette[i] += roulette[i - 1];
-      }
+      heuristics.sort(function(a, b) {
+        return a.rewards - b.rewards;
+      });
 
       return this;
     },
-    wheelOut: function () {
-      var i,
-        rand = Math.random(),
-        roulette = this.roulette,
-        max = roulette.length;
+    pickGoodHeuristic: function () {
+      var middleIndex = Math.floor(this.settings.count / 2),
+        indexBetweenMiddleAndHigh = Math.floor((Math.random() * middleIndex) + middleIndex);
 
-      for(i = 0; i < max; i++) {
-        if(rand <= roulette[i]) {
-          return i;
-        }
-      }
-
-      return -1;
+      return this.heuristics[indexBetweenMiddleAndHigh];
     },
     generateHeuristics: function () {
       var settings = this.settings,
