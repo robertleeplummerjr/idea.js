@@ -12,15 +12,26 @@ idea.Heuristic = (function() {
   function Heuristic(sequence) {
     this.rewards = 0;
     this.sequence = sequence;
+    this.swapCount = 0;
+    this.exchangeCount = 0;
   }
 
   Heuristic.prototype = {
+    /**
+     *
+     * @param {number} reward
+     * @returns {Heuristic}
+     */
     reward: function(reward) {
       reward = (reward === undefined ? 1 : reward);
       this.rewards += reward;
       return this;
     },
 
+    /**
+     *
+     * @returns {Heuristic}
+     */
     clone: function() {
       var sequence = this.sequence,
           copy = new Heuristic(sequence.slice(0));
@@ -28,8 +39,13 @@ idea.Heuristic = (function() {
 
       return copy;
     },
-    mutate: function () {
-      this.mutationTimes++;
+
+    /**
+     *
+     * @returns {Heuristic}
+     */
+    swap: function () {
+      this.swapCount++;
       var m,
           sequence = this.sequence,
           n,
@@ -49,8 +65,13 @@ idea.Heuristic = (function() {
       this.sequence = sequence;
       return this;
     },
-    pushMutate: function () {
-      this.mutationTimes++;
+
+    /**
+     *
+     * @returns {Heuristic}
+     */
+    exchange: function () {
+      this.exchangeCount++;
       var m,
           n,
           sequence = this.sequence;

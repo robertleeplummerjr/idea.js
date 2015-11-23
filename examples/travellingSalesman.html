@@ -19,8 +19,9 @@
 <script src="../src/idea/MetaHeuristic.js"></script>
 <script src="../src/idea/Heuristic.js"></script>
 
-<script src="travellingSalesman/Salesman.js"></script>
-<script src="travellingSalesman/Controller.js"></script>
+<script src="travellingSalesman/George.js"></script>
+<script src="travellingSalesman/GeorgeController.js"></script>
+<script src="travellingSalesman/Newman.js"></script>
 <script src="travellingSalesman/Route.js"></script>
 <script>
   var canvas = document.getElementById('canvas'),
@@ -28,48 +29,27 @@
       ctx = canvas.getContext('2d'),
       width = canvas.width = window.innerWidth * 0.8,
       height = canvas.height = window.innerHeight * 0.8,
-      controller = new Controller({
+      george = new GeorgeController({
+        ctx: ctx,
+        width: width,
+        height: height
+      }),
+      newman = new NewmanController({
+        ctx: ctx,
+        width: width,
+        height: height
+      }),
+      jerry = new JerryController({
         ctx: ctx,
         width: width,
         height: height
       });
 
   setInterval(function() {
-    controller.update();
-    distance.innerHTML = controller.foundShortestRoute.distance.toString();
-  }, 0);
-</script>
-<script>
-  var canvas = document.getElementById('canvas'),
-      distance = document.getElementById('distance'),
-      ctx = canvas.getContext('2d'),
-      width = canvas.width = window.innerWidth * 0.8,
-      height = canvas.height = window.innerHeight * 0.8,
-      controller = new idea.MetaHeuristic({
-        ctx: ctx,
-        width: width,
-        height: height
-      });
-
-  problems = [];
-  i =  0;
-  for (;i < 200; i++) {
-    problems.push({
-      x: Math.random() * width,
-      y: Math.random() * height
-    });
-  }
-  new idea.MetaHeuristic({
-    count: 30,
-    problems: problems,
-    goal: function(problem1, problem2) {
-
-    }
-  });
-
-  setInterval(function() {
-    controller.update();
-    distance.innerHTML = controller.foundShortestRoute.distance.toString();
+    george.update();
+    newman.update();
+    jerry.update();
+    distance.innerHTML = gc.foundShortestRoute.distance.toString();
   }, 0);
 </script>
 </html>

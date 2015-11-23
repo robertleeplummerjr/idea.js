@@ -1,5 +1,5 @@
-var Salesman = (function() {
-  function Salesman(route) {
+var George = (function() {
+  function George(route) {
     var self = this;
     this.originalRoute = route;
     this.originalRouteFlattened = route.flatten();
@@ -59,5 +59,5 @@ var Salesman = (function() {
     });
   }
 
-  return Salesman;
+  return George;
 })();

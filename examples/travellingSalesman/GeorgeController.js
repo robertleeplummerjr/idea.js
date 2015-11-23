@@ -1,9 +1,9 @@
-var Controller = (function() {
-  function Controller(settings) {
+var GeorgeController = (function() {
+  function GeorgeController(settings) {
     settings = settings || {};
 
     var self = this,
-      defaults = Controller.defaults,
+      defaults = GeorgeController.defaults,
       _settings = {},
       i;
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
@@ -13,20 +13,20 @@ var Controller = (function() {
     this.day = 0;
     this.ticks = 0;
     this.route = (new Route()).createRandom({
-      count: settings.numPoints,
+      count: settings.points,
       height: settings.height,
       width: settings.width
     });
     this.foundShortestRoute = null;
     this.hive = new idea.Hive({
-      count: settings.numSalesmen,
+      count: settings.count,
       initType: function() {
-        return new Salesman(self.route);
+        return new George(self.route);
       }
     });
   }
 
-  Controller.prototype = {
+  GeorgeController.prototype = {
     render: function() {
       return this
         .drawBackground()
@@ -89,9 +89,9 @@ var Controller = (function() {
         salesman,
         hive = this.hive,
         settings = this.settings,
-        max = settings.numSalesmen;
+        max = settings.count;
 
-      if (this.ticks++ < settings.numTicks) {
+      if (this.ticks++ < settings.dayTicks) {
         for (; i < max; i++) {
           salesman = hive.collection[i];
           salesman.brain.think();
@@ -124,13 +124,14 @@ var Controller = (function() {
     }
   };
 
-  Controller.defaults = {
+  GeorgeController.defaults = {
     ctx: null,
-    numSalesmen: 30,
-    numPoints: 20,
+    count: 30,
+    points: 20,
     width: 1,
     height: 1,
-    numTicks: 20
+    dayTicks: 20
   };
-  return Controller;
+
+  return GeorgeController;
 })();
