@@ -52,13 +52,12 @@ var Route = (function() {
     this.distance = null;
     this.points = clean(this.points);
     this.updateDistance();
-  }//6395.484923814237
-   //6395.484923814237
+  }
 
   Route.prototype = {
     clone: function() {
       var route = new Route(this.points.slice(0));
-      route.distance = this.distance;
+      route.distance = this.distance + 0;
       return this;
     },
     shuffleClone: function() {
@@ -80,7 +79,7 @@ var Route = (function() {
         sum += distance(previousPoint, point);
         previousPoint = point;
       }
-      this.distance = sum;
+      this.distance = Math.round(sum);
       return this;
     },
     distances: function() {

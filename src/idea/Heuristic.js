@@ -65,7 +65,7 @@ idea.Heuristic = (function() {
       this.swapCount++;
       var m,
           settings = this.settings,
-          sequence = settings.sequence,
+          sequence = settings.sequence.slice(0),
           n,
           i = 0,
           j;
@@ -80,7 +80,7 @@ idea.Heuristic = (function() {
         swap(sequence, m + i, n - i);
       }
 
-      settings.sequence = sequence;
+      this.settings.sense(sequence);
       return this;
     },
 
@@ -93,20 +93,22 @@ idea.Heuristic = (function() {
       var m,
           n,
           settings = this.settings,
-          sequence = settings.sequence;
+          sequence = settings.sequence.slice(0);
 
       do {
-        m = Math.random() * (sequence.length >> 1);
-        n = Math.random() * sequence.length;
+        m = Math.floor(Math.random() * (sequence.length >> 1));
+        n = Math.floor(Math.random() * sequence.length);
       } while (m >= n);
 
       var s1 = sequence.slice(0, m),
           s2 = sequence.slice(m, n),
           s3 = sequence.slice(n, sequence.length);
 
-      settings.sequence = s2
+      settings.sense(
+        s2
           .concat(s1)
-          .concat(s3);
+          .concat(s3)
+      );
 
       return this;
     }
@@ -114,7 +116,10 @@ idea.Heuristic = (function() {
 
   Heuristic.defaults = {
     sequence: [],
-    goal: null
+    goal: null,
+    sense: function(newSequence) {
+      this.settings.sequence = newSequence;
+    }
   };
 
   return Heuristic;

@@ -102,14 +102,17 @@ var NewmanController = (function() {
     update: function() {
       var self = this;
 
-      this.mh.live(function(salesman) {
-        if (self.foundShortestRoute === null) {
-          self.foundShortestRoute = salesman.route.clone();
-        }
-        if (salesman.route.distance < self.foundShortestRoute.distance) {
-          self.foundShortestRoute = salesman.route.clone();
-        }
-      }).learn();
+      this.mh
+        .live(function(salesman) {
+          if (self.foundShortestRoute === null) {
+            self.foundShortestRoute = salesman.route.clone();
+          }
+          if (salesman.route.distance < self.foundShortestRoute.distance) {
+            self.foundShortestRoute = salesman.route.clone();
+          }
+        })
+        .learn();
+
       return this;
     }
   };

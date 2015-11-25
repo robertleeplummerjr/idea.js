@@ -2,22 +2,27 @@
  * meta heuristic / genetic algorithm
  */
 idea.MetaHeuristic = (function() {
-  function nextOf(array, index) {
+  function nextIn(array, index) {
     index++;
     if(index >= array.length) {
       index = 0;
     }
 
-    return index;
+    return array[index];
   }
 
-  function previousOf(array, index) {
+  function prevIn(array, index) {
     index--;
     if(index < 0) {
       index = array.length - 1;
     }
 
-    return index;
+    return array[index];
+  }
+
+  function deleteByValue(array, value) {
+    var pos = array.indexOf(value);
+    array.splice(pos, 1);
   }
 
   function MetaHeuristic(settings) {
@@ -34,8 +39,6 @@ idea.MetaHeuristic = (function() {
     this.bestRewards = 0;
     this.avgRewards = 0;
     this.lowestRewards = MetaHeuristic.defaults.worstRewards;
-    this.elites = [];
-    this.nonElites = [];
 
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
       _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
@@ -59,7 +62,6 @@ idea.MetaHeuristic = (function() {
       this.learnCount++;
       this
         .calcStats()
-        .setElites()
         .optimize();
 
       var queue = [],
@@ -123,45 +125,6 @@ idea.MetaHeuristic = (function() {
 
     /**
      *
-     * @param {number} [eliteCount]
-     * @param {boolean} [resetRewards]
-     * @returns {MetaHeuristic}
-     */
-    setElites: function(eliteCount, resetRewards) {
-      eliteCount = eliteCount || this.settings.eliteCount;
-      resetRewards = resetRewards !== undefined ? resetRewards : false;
-
-      var item,
-        collection = this.collection,
-        settings = this.settings,
-        elites = this.elites = [],
-        nonElites = this.nonElites = [],
-        i = 0,
-        max = settings.count,
-        nonEliteCount = max - eliteCount;
-
-      for (;i < max; i++) {
-        item = collection[i];
-
-        if (resetRewards) {
-          item.heuristic.rewards = 0;
-        }
-
-        if (nonElites.length < nonEliteCount) {
-          nonElites.push(item);
-        } else {
-          elites.push(item);
-        }
-      }
-
-      elites.reverse();
-      nonElites.reverse();
-
-      return this;
-    },
-
-    /**
-     *
      * @returns {MetaHeuristic}
      */
     optimize: function () {
@@ -199,36 +162,30 @@ idea.MetaHeuristic = (function() {
         collection = this.collection,
         student = collection[backward ? y : x],
         leftSequence = collection[x].heuristic.settings.sequence.slice(0),
-        leftI,
+        left,
         rightSequence = collection[y].heuristic.settings.sequence.slice(0),
-        rightI,
+        right,
         sequence = [],
         randomIndex = Math.floor(Math.random() * (leftSequence.length - 1)),
-        next,
         current,
-        navigate = backward ? previousOf : nextOf;
+        navigate = backward ? prevIn : nextIn;
 
       //a random starting point found in both left and right sequences
-      leftI = randomIndex;
-      current = leftSequence[leftI];
-      rightI = rightSequence.indexOf(current);
-
-      while (leftSequence.length > 0) {
-        leftI = navigate(leftSequence, leftI);
-        rightI = navigate(rightSequence, rightI);
-        next = filter(leftSequence[leftI], rightSequence[rightI], current);
-        leftI = leftSequence.indexOf(next);
-        rightI = rightSequence.indexOf(next);
-        leftSequence.splice(leftI, 1);
-        rightSequence.splice(rightI, 1);
-        current = next;
-        if (sequence.indexOf(next) > -1) {
-          throw new Error('already contained in sequence');
-        }
-        sequence.push(next);
+      current = leftSequence[randomIndex];
+      sequence.push(current);
+      while(leftSequence.length > 1) {
+        left = navigate(leftSequence, leftSequence.indexOf(current));
+        right = navigate(rightSequence, rightSequence.indexOf(current));
+        deleteByValue(leftSequence, current);
+        deleteByValue(rightSequence, current);
+        current = filter(left, right, current);
+        sequence.push(current);
       }
 
-      student.heuristic.settings.sequence = sequence;
+      if (student.heuristic.settings.sense !== null) {
+        student.heuristic.settings.sense(sequence);
+      }
+
       return this;
     },
 
@@ -307,7 +264,6 @@ idea.MetaHeuristic = (function() {
 
   MetaHeuristic.defaults = {
     count: 30,
-    eliteCount: 5,
     maxPerturbation: 0.9,
     mutationProbability: 0.01,
     worstRewards: 9999999,

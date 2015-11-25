@@ -13,12 +13,16 @@ var Newman = (function() {
           reward = 0;
 
         if (d < self.previousDistance) {
+          reward = self.previousDistance - d;
           self.previousDistance = d;
           self.route = experimentalRoute;
-          reward = 1;
         }
 
         return reward;
+      },
+      sense: function(newSequence) {
+        self.heuristic.settings.sequence = newSequence;
+        self.route = new Route(newSequence);
       }
     });
 
