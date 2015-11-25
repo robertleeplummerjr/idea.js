@@ -12,24 +12,23 @@ var GeorgeController = (function() {
     this.settings = settings = _settings;
     this.day = 0;
     this.ticks = 0;
-    this.route = (new Route()).createRandom({
-      count: settings.points,
-      height: settings.height,
-      width: settings.width
-    });
+    this.distances = null;
     this.foundShortestRoute = null;
     this.hive = new idea.Hive({
       count: settings.count,
       initType: function() {
-        return new George(self.route);
+        return new George(settings.route);
       }
     });
   }
 
   GeorgeController.prototype = {
-    render: function() {
+    render: function(drawBackground) {
+      if (drawBackground) {
+        this.drawBackground();
+      }
+
       return this
-        .drawBackground()
         .drawPoints()
         .drawRoute();
     },
@@ -47,7 +46,7 @@ var GeorgeController = (function() {
     },
     drawPoints: function() {
       var settings = this.settings,
-        points = this.route.points,
+        points = settings.route.points,
         point,
         ctx = settings.ctx,
         i = 0,
@@ -73,7 +72,7 @@ var GeorgeController = (function() {
         lastPoint = points[max - 1];
 
       ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgb(255, 196, 0)';
+      ctx.strokeStyle = 'rgb(207, 239, 250)';
 
       ctx.beginPath();
       ctx.moveTo(lastPoint.x, lastPoint.y);
@@ -85,29 +84,20 @@ var GeorgeController = (function() {
       return this;
     },
     update: function() {
-      var i = 0,
-        salesman,
-        hive = this.hive,
-        settings = this.settings,
-        max = settings.count;
+      var self = this;
 
-      if (this.ticks++ < settings.dayTicks) {
-        for (; i < max; i++) {
-          salesman = hive.collection[i];
-          salesman.brain.think();
-          if (this.foundShortestRoute === null) {
-            this.foundShortestRoute = salesman.route;
+      if (this.ticks++ < this.settings.dayTicks) {
+        this.hive.live(function(salesman) {
+          if (self.foundShortestRoute === null) {
+            self.foundShortestRoute = salesman.route;
           }
-          if (salesman.route.distance < this.foundShortestRoute.distance) {
-            this.foundShortestRoute = salesman.route;
+          if (salesman.route.distance < self.foundShortestRoute.distance) {
+            self.foundShortestRoute = salesman.route;
           }
-        }
+        });
       } else {
         this.beginNewDay();
       }
-
-      this.render();
-
       return this;
     },
 
@@ -127,7 +117,7 @@ var GeorgeController = (function() {
   GeorgeController.defaults = {
     ctx: null,
     count: 30,
-    points: 20,
+    route: null,
     width: 1,
     height: 1,
     dayTicks: 20

@@ -6,9 +6,11 @@
 </head>
 <body>
 <canvas id="canvas"></canvas>
-<div>Distance: <span id="distance"></span></div>
+<div>George's Distance: <span id="georgeDistance"></span></div>
+<div>Newman's Distance: <span id="newmanDistance"></span></div>
 <div>Elites Distance: <span id="elitesDistance"></span></div>
 </body>
+<script src="../src/utilities.js"></script>
 <script src="../src/idea/base.js"></script>
 <script src="../src/idea/Hive.js"></script>
 <script src="../src/idea/NeuralNet.js"></script>
@@ -22,34 +24,49 @@
 <script src="travellingSalesman/George.js"></script>
 <script src="travellingSalesman/GeorgeController.js"></script>
 <script src="travellingSalesman/Newman.js"></script>
+<script src="travellingSalesman/NewmanController.js"></script>
+
 <script src="travellingSalesman/Route.js"></script>
 <script>
   var canvas = document.getElementById('canvas'),
-      distance = document.getElementById('distance'),
+      georgeDistance = document.getElementById('georgeDistance'),
+      newmanDistance = document.getElementById('newmanDistance'),
       ctx = canvas.getContext('2d'),
       width = canvas.width = window.innerWidth * 0.8,
       height = canvas.height = window.innerHeight * 0.8,
+      route = (new Route()).createRandom({
+        width: width,
+        height: height,
+        count: 20
+      }),
       george = new GeorgeController({
         ctx: ctx,
         width: width,
-        height: height
+        height: height,
+        route: route
       }),
       newman = new NewmanController({
         ctx: ctx,
         width: width,
-        height: height
-      }),
+        height: height,
+        route: route
+      })/*,
       jerry = new JerryController({
         ctx: ctx,
         width: width,
         height: height
-      });
+      })*/;
 
   setInterval(function() {
-    george.update();
-    newman.update();
-    jerry.update();
-    distance.innerHTML = gc.foundShortestRoute.distance.toString();
+    george
+        .update()
+        .render(true);
+    newman
+        .update()
+        .render();
+    //jerry.update();
+    georgeDistance.innerHTML = george.foundShortestRoute.distance.toString();
+    newmanDistance.innerHTML = newman.foundShortestRoute.distance.toString();
   }, 0);
 </script>
 </html>

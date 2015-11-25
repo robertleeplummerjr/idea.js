@@ -2,57 +2,50 @@
  * meta heuristic / genetic algorithm
  */
 idea.MetaHeuristic = (function() {
-  function shuffle(array) {
-    var j,
-        x,
-        i = array.length - 1;
-
-    while (i > -1) {
-      j = Math.random() * i;
-      x = array[--i];
-      array[i] = array[j];
-      array[j] = x;
+  function nextOf(array, index) {
+    index++;
+    if(index >= array.length) {
+      index = 0;
     }
 
-    return this;
+    return index;
   }
 
-  function next(array, index) {
-    if(index === array.length-1) {
-      return array[0];
+  function previousOf(array, index) {
+    index--;
+    if(index < 0) {
+      index = array.length - 1;
     }
 
-    return array[index + 1];
-  }
-
-  function previous(array, index) {
-    if(index === 0) {
-      return array[array.length - 1];
-    }
-    return array[index - 1];
+    return index;
   }
 
   function MetaHeuristic(settings) {
     settings = settings || {};
 
     var defaults = MetaHeuristic.defaults,
-        _settings = {},
-        i;
+      _settings = {},
+      i,
+      collection;
 
-    this.heuristics = [];
+    this.collection = collection = [];
     this.learnCount = 0;
-    this.improvements = 0;
-    this.bestPosition = null;
-    this.bestValue = null;
+    this.totalRewards = 0;
+    this.bestRewards = 0;
+    this.avgRewards = 0;
+    this.lowestRewards = MetaHeuristic.defaults.worstRewards;
+    this.elites = [];
+    this.nonElites = [];
 
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
       _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
+
     this.settings = _settings;
 
-    this
-        .generateHeuristics()
-        .improve();
+    for (i = 0; i < settings.count; i++) {
+      collection.push(settings.initType());
+    }
   }
 
   MetaHeuristic.prototype = {
@@ -62,12 +55,33 @@ idea.MetaHeuristic = (function() {
      */
     learn: function () {
       this.learnCount++;
-      return this
+      this
         .calcStats()
-        .optimize()
-        .teach()
-        .mutate()
-        .improve();
+        .setElites()
+        .optimize();
+
+      var queue = [],
+        i = 0,
+        settings = this.settings,
+        max = settings.count,
+        maxPerturbation = settings.maxPerturbation,
+        j;
+
+      for(; i < max; i++) {
+        if(Math.random() < maxPerturbation) {
+          queue.push(i);
+        }
+      }
+
+      shuffle(queue);
+
+      for(i = 0, j = queue.length - 1; i < j; i += 2) {
+        this
+          .teach(queue[i], queue[i + 1])
+          .teach(queue[i], queue[i + 1], true);
+      }
+
+      return this.mutate();
     },
 
     /**
@@ -75,6 +89,71 @@ idea.MetaHeuristic = (function() {
      * @returns {MetaHeuristic}
      */
     calcStats: function() {
+      this.sort();
+      this.totalRewards = 0;
+      var bestRewards = 0,
+        settings = this.settings,
+        rewards,
+        item,
+        collection = this.collection,
+        max = settings.count,
+        lowestRewards = this.lowestRewards,
+        i = 0;
+
+      for (; i < max; i++) {
+        item = collection[i];
+        rewards = item.heuristic.rewards;
+        if (rewards > bestRewards) {
+          bestRewards = rewards;
+          this.bestRewards = bestRewards;
+        }
+
+        if (rewards < lowestRewards) {
+          lowestRewards = rewards;
+          this.lowestRewards = lowestRewards;
+        }
+        this.totalRewards += rewards;
+      }
+
+      this.avgRewards = this.totalRewards / this.settings.count;
+      return this;
+    },
+
+    /**
+     *
+     * @param {number} [eliteCount]
+     * @param {boolean} [resetRewards]
+     * @returns {MetaHeuristic}
+     */
+    setElites: function(eliteCount, resetRewards) {
+      eliteCount = eliteCount || this.settings.eliteCount;
+      resetRewards = resetRewards !== undefined ? resetRewards : true;
+
+      var item,
+        collection = this.collection,
+        settings = this.settings,
+        elites = this.elites = [],
+        nonElites = this.nonElites = [],
+        i = 0,
+        max = settings.count,
+        nonEliteCount = max - eliteCount;
+
+      for (;i < max; i++) {
+        item = collection[i];
+
+        if (resetRewards) {
+          item.heuristic.rewards = 0;
+        }
+
+        if (nonElites.length < nonEliteCount) {
+          nonElites.push(item);
+        } else {
+          elites.push(item);
+        }
+      }
+
+      elites.reverse();
+      nonElites.reverse();
 
       return this;
     },
@@ -87,48 +166,20 @@ idea.MetaHeuristic = (function() {
       var parents = [],
           i = 4,
           max = this.settings.count,
-          heuristics = this.heuristics,
-          best = this.bestValue,
-          bestClone = best.clone();
+          collection = this.collection;
 
-      this.sort();
+      collection[1].heuristic.swap();
+      collection[2].heuristic.exchange();
 
-      parents.push(heuristics[this.bestPosition]);
-      parents.push(bestClone.swap());
-      parents.push(bestClone.exchange());
-      parents.push(bestClone);
-
-      for(; i < max; i++) {
-        parents.push(this.pickGoodHeuristic());
-      }
-      this.heuristics = parents;
-
-      return this;
-    },
-
-    /**
-     *
-     * @returns {MetaHeuristic}
-     */
-    teach: function () {
-      var queue = [],
-          i = 0,
-          settings = this.settings,
-          max = settings.count,
-          maxPerturbation = settings.maxPerturbation,
-          j;
+      parents.push(collection[0]);
+      parents.push(collection[1]);
+      parents.push(collection[2]);
+      parents.push(collection[3]);
 
       for(; i < max; i++) {
-        if(Math.random() < maxPerturbation) {
-          queue.push(i);
-        }
+        parents.push(this.select());
       }
-
-      shuffle(queue);
-
-      for(i = 0, j = queue.length - 1; i < j; i += 2) {
-        this.crossover(queue[i], queue[i+1]);
-      }
+      this.collection = parents;
 
       return this;
     },
@@ -137,89 +188,48 @@ idea.MetaHeuristic = (function() {
      *
      * @param x
      * @param y
+     * @param {Boolean} [backward]
      * @returns {MetaHeuristic}
      */
-    crossover: function (x, y) {
-      var heuristics = this.heuristics;
-      heuristics[x] = this.getNextChild(x, y);
-      heuristics[y] = this.getPreviousChild(x, y);
+    teach: function (x, y, backward) {
+      var settings = this.settings,
+        filter = settings.filter,
+        collection = this.collection,
+        leftSequence = collection[x].heuristic.settings.sequence.slice(0),
+        leftI,
+        rightSequence = collection[y].heuristic.settings.sequence.slice(0),
+        rightI,
+        sequence = [],
+        randomIndex = Math.floor(Math.random() * (leftSequence.length - 1)),
+        next,
+        current,
+        of = backward ? previousOf : nextOf;
+
+      leftI = randomIndex;
+      current = leftSequence[leftI];
+      rightI = rightSequence.indexOf(current);
+
+      while (leftSequence.length > 0) {
+        leftI = of(leftSequence, leftI);
+        rightI = of(rightSequence, rightI);
+        next = filter(leftSequence[leftI], rightSequence[rightI], current);
+        leftSequence.splice(leftI, 1);
+        rightSequence.splice(rightI, 1);
+        current = next;
+        sequence.push(next);
+      }
+
+      collection[backward ? y : x].heuristic.settings.sequence = sequence;
       return this;
     },
 
-    /**
-     *
-     * @param x
-     * @param y
-     * @returns {Array}
-     */
-    getNextChild: function (x, y) {
-      var solution = [],
-          heuristics = this.heuristics,
-          px = heuristics[x].clone(),
-          py = heuristics[y].clone(),
-          xi,
-          yi,
-          dx,
-          dy,
-          i = Math.random() * px.length,
-          c = px[i];
-
-      solution.push(c);
-
-      while(px.length > 1) {
-        xi = i;
-        yi = py.indexOf(c);
-        dx = next(px, xi);
-        dy = next(py, yi);
-        px.splice(xi, 1);
-        py.splice(yi, 1);
-        c = dx.rewards > dy.rewards ? dx : dy;
-        solution.push(c);
-      }
-
-      return solution;
-    },
-
-    /**
-     *
-     * @param x
-     * @param y
-     * @returns {Array}
-     */
-    getPreviousChild: function (x, y) {
-      var solution = [],
-          heuristics = this.heuristics,
-          px = heuristics[x].clone(),
-          py = heuristics[y].clone(),
-          xi,
-          yi,
-          dx,
-          dy,
-          i = Math.random() * px.length,
-          c = px[i];
-
-      solution.push(c);
-
-      while(px.length > 1) {
-        xi = i;
-        yi = py.indexOf(c);
-        dx = previous(px, xi);
-        dy = previous(py, yi);
-        px.splice(xi, 1);
-        py.splice(yi, 1);
-        c = dx.rewards > dy.rewards ? dx : dy;
-        solution.push(c);
-      }
-
-      return solution;
-    },
 
     /**
      *
      * @returns {MetaHeuristic}
      */
     mutate: function () {
-      var heuristics = this.heuristics,
+      var collection = this.collection,
           settings = this.settings,
           mutationProbability = settings.mutationProbability,
           max = settings.count,
@@ -228,9 +238,9 @@ idea.MetaHeuristic = (function() {
       for(; i < max; i++) {
         if(Math.random() < mutationProbability) {
           if(Math.random() > 0.5) {
-            heuristics[i].exchange();
+            collection[i].heuristic.exchange();
           } else {
-            heuristics[i].swap();
+            collection[i].heuristic.swap();
           }
           i--;
         }
@@ -241,27 +251,27 @@ idea.MetaHeuristic = (function() {
 
     /**
      *
+     * @param {Function} [each]
      * @returns {MetaHeuristic}
      */
-    improve: function () {
+    live: function (each) {
       var i = 0,
-          heuristics = this.heuristics,
-          max = heuristics.length,
-          currentBestValue = heuristics[0].rewards,
-          heuristic,
-          settings = this.settings;
+          collection = this.collection,
+          max = collection.length,
+          item;
 
-      for(; i < max; i++) {
-        heuristic = heuristics[i];
-        heuristic.reward(settings.goal(heuristic));
-
-        if(heuristic.rewards < currentBestValue) {
-          this.bestPosition = i;
-          this.bestValue = currentBestValue = heuristic.rewards;
-          this.improvements++;
+      if (each === undefined) {
+        for (; i < max; i++) {
+          item = collection[i];
+          item.heuristic.think();
+        }
+      } else {
+        for (; i < max; i++) {
+          item = collection[i];
+          item.heuristic.think();
+          each(item, i);
         }
       }
-
       return this;
     },
 
@@ -270,10 +280,10 @@ idea.MetaHeuristic = (function() {
      * @returns {MetaHeuristic}
      */
     sort: function () {
-      var heuristics = this.heuristics;
+      var collection = this.collection;
 
-      heuristics.sort(function(a, b) {
-        return a.rewards - b.rewards;
+      collection.sort(function(a, b) {
+        return a.heuristic.rewards - b.heuristic.rewards;
       });
 
       return this;
@@ -281,33 +291,13 @@ idea.MetaHeuristic = (function() {
 
     /**
      *
-     * @returns {Heuristic}
+     * @returns {*}
      */
-    pickGoodHeuristic: function () {
+    select: function () {
       var middleIndex = Math.floor(this.settings.count / 2),
         indexBetweenMiddleAndHigh = Math.floor((Math.random() * middleIndex) + middleIndex);
 
-      return this.heuristics[indexBetweenMiddleAndHigh];
-    },
-
-    /**
-     *
-     * @returns {MetaHeuristic}
-     */
-    generateHeuristics: function () {
-      var settings = this.settings,
-          possibilities = settings.possibilities,
-          heuristic,
-          heuristics = this.heuristics,
-          count = settings.count,
-          i = 0;
-
-      for(; i < count; i++) {
-        heuristic = new idea.Heuristic(possibilities);
-        shuffle(heuristic.items);
-        heuristics.push(heuristic);
-      }
-      return this;
+      return this.collection[indexBetweenMiddleAndHigh];
     }
   };
 
@@ -315,8 +305,8 @@ idea.MetaHeuristic = (function() {
     count: 30,
     maxPerturbation: 0.9,
     mutationProbability: 0.01,
-    possibilities: [],
-    goal: null
+    worstRewards: 9999999,
+    filter: null
   };
 
   return MetaHeuristic;

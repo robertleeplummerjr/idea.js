@@ -1,4 +1,10 @@
 var NewmanController = (function() {
+  function distance(p1, p2) {
+    return euclidean(p1.x-p2.x, p1.y-p2.y);
+  }
+  function euclidean(dx, dy) {
+    return Math.sqrt(dx*dx + dy*dy);
+  }
   function NewmanController(settings) {
     settings = settings || {};
 
@@ -12,40 +18,28 @@ var NewmanController = (function() {
     this.settings = settings = _settings;
     this.day = 0;
     this.ticks = 0;
-    this.route = (new Route()).createRandom({
-      count: settings.points,
-      height: settings.height,
-      width: settings.width
-    });
     this.foundShortestRoute = null;
+    this.distances = null;
     this.mh = new idea.MetaHeuristic({
-      possibilities: this.route,
       count: settings.count,
-      goal: function() {
-        var experimentalRoute = self.experimentalRoute,
-          d = experimentalRoute.updateDistance().distance,
-          count = experimentalRoute.intersectCount(),
-          reward = 0;
+      initType: function() {
+        return new Newman(self.settings.route);
+      },
+      filter: function(left, right, prev) {
+        var leftDistance = distance(prev, left),
+          rightDistance = distance(prev, right);
 
-        if (d < self.previousDistance) {
-          self.previousDistance = d;
-          self.route = experimentalRoute;
-          reward++;
-        }
-
-        if (count < self.previousIntersects) {
-          reward++;
-        }
-
-        return reward;
+        return leftDistance < rightDistance ? left : right;
       }
     });
   }
 
   NewmanController.prototype = {
-    render: function() {
+    render: function(drawBackground) {
+      if (drawBackground) {
+        this.drawBackground()
+      }
       return this
-        .drawBackground()
         .drawPoints()
         .drawRoute();
     },
@@ -63,7 +57,7 @@ var NewmanController = (function() {
     },
     drawPoints: function() {
       var settings = this.settings,
-        points = this.route.points,
+        points = settings.route.points,
         point,
         ctx = settings.ctx,
         i = 0,
@@ -101,25 +95,16 @@ var NewmanController = (function() {
       return this;
     },
     update: function() {
-      var i = 0,
-        salesman,
-        mh = this.mh,
-        settings = this.settings,
-        max = settings.count;
+      var self = this;
 
-      for (; i < max; i++) {
-        salesman = mh.collection[i];
-        salesman.brain.think();
-        if (this.foundShortestRoute === null) {
-          this.foundShortestRoute = salesman.route;
+      this.mh.live(function(salesman) {
+        if (self.foundShortestRoute === null) {
+          self.foundShortestRoute = salesman.route;
         }
-        if (salesman.route.distance < this.foundShortestRoute.distance) {
-          this.foundShortestRoute = salesman.route;
+        if (salesman.route.distance < self.foundShortestRoute.distance) {
+          self.foundShortestRoute = salesman.route;
         }
-      }
-
-      this.render();
-
+      }).learn();
       return this;
     }
   };
@@ -127,7 +112,7 @@ var NewmanController = (function() {
   NewmanController.defaults = {
     ctx: null,
     count: 30,
-    points: 20,
+    route: null,
     width: 1,
     height: 1
   };

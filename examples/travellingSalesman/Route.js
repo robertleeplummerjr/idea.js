@@ -67,6 +67,11 @@ var Route = (function() {
     clone: function() {
       return new Route(this.points.slice(0));
     },
+    shuffleClone: function() {
+      var array = this.points.slice(0);
+      shuffle(array);
+      return new Route(array);
+    },
     clean: function() {
       this.points = this.points.filter(function (n) {
         return n !== null && n !== undefined;

@@ -240,11 +240,11 @@ idea.NeuralNet = (function(idea) {
         }
       }
 
-      if (settings.action !== undefined) {
+      if (settings.action !== null) {
         settings.action(outputs);
       }
 
-      if (settings.goal !== undefined) {
+      if (settings.goal !== null) {
         this.wisdom.rewards += settings.goal();
       }
 

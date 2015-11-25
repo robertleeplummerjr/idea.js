@@ -21,6 +21,7 @@ idea.Hive = (function(idea) {
       _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
 
+    this.learnCount = 0;
     this.settings = settings = _settings;
     this.totalRewards = 0;
     this.bestRewards = 0;
@@ -190,8 +191,8 @@ idea.Hive = (function(idea) {
       return this;
     },
     learn: function() {
+      this.learnCount++;
       this
-          .sort()
           .calcStats()
           .setElites();
 
@@ -206,6 +207,33 @@ idea.Hive = (function(idea) {
         elite = randomResult(elites) || this.select();
         nonElite = nonElites[i];
         this.teach(elite, nonElite);
+      }
+
+      return this;
+    },
+
+    /**
+     *
+     * @param {Function} [each]
+     * @returns {Hive}
+     */
+    live: function(each) {
+      var collection = this.collection,
+          max = collection.length,
+          item,
+          i = 0;
+
+      if (each === undefined) {
+        for (; i < max; i++) {
+          item = collection[i];
+          item.brain.think();
+        }
+      } else {
+        for (; i < max; i++) {
+          item = collection[i];
+          item.brain.think();
+          each.call(this, item, i);
+        }
       }
 
       return this;

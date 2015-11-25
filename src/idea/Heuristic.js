@@ -9,14 +9,27 @@ idea.Heuristic = (function() {
     array[y] = tem;
   }
 
-  function Heuristic(sequence) {
+  function Heuristic(settings) {
+    settings = settings || {};
+    var _settings = {},
+      defaults = Heuristic.defaults,
+      i;
+
+    for (i in defaults) if (defaults.hasOwnProperty(i)) {
+      _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
+    }
+
+    this.settings = _settings;
     this.rewards = 0;
-    this.sequence = sequence;
     this.swapCount = 0;
     this.exchangeCount = 0;
   }
 
   Heuristic.prototype = {
+
+    think: function() {
+      return this.reward(this.settings.goal(this));
+    },
     /**
      *
      * @param {number} reward
@@ -33,7 +46,8 @@ idea.Heuristic = (function() {
      * @returns {Heuristic}
      */
     clone: function() {
-      var sequence = this.sequence,
+      var settings = this.settings,
+          sequence = settings.sequence,
           copy = new Heuristic(sequence.slice(0));
       copy.rewards = this.rewards;
 
@@ -47,7 +61,8 @@ idea.Heuristic = (function() {
     swap: function () {
       this.swapCount++;
       var m,
-          sequence = this.sequence,
+          settings = this.settings,
+          sequence = settings.sequence,
           n,
           i = 0,
           j;
@@ -62,7 +77,7 @@ idea.Heuristic = (function() {
         swap(sequence, m + i, n - i);
       }
 
-      this.sequence = sequence;
+      settings.sequence = sequence;
       return this;
     },
 
@@ -74,7 +89,8 @@ idea.Heuristic = (function() {
       this.exchangeCount++;
       var m,
           n,
-          sequence = this.sequence;
+          settings = this.settings,
+          sequence = settings.sequence;
 
       do {
         m = Math.random() * (sequence.length >> 1);
@@ -85,12 +101,17 @@ idea.Heuristic = (function() {
           s2 = sequence.slice(m, n),
           s3 = sequence.slice(n, sequence.length);
 
-      this.sequence = s2
+      settings.sequence = s2
           .concat(s1)
           .concat(s3);
 
       return this;
     }
+  };
+
+  Heuristic.defaults = {
+    sequence: [],
+    goal: null
   };
 
   return Heuristic;

@@ -2,8 +2,8 @@ var George = (function() {
   function George(route) {
     var self = this;
     this.originalRoute = route;
+    this.route = route.shuffleClone();
     this.originalRouteFlattened = route.flatten();
-    this.route = route.clone();
     this.previousDistance = 999999999999999;
     this.experimentalRoute = null;
     this.previousIntersects = 99999999999999999;
