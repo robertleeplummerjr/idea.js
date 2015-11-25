@@ -3,6 +3,12 @@ var Route = (function() {
     return Math.sqrt((p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y));
   }
 
+  function clean(points) {
+    return points.filter(function (n) {
+      return n !== null && n !== undefined;
+    });
+  }
+
   function checkLineIntersection(line1Start, line1End, line2Start, line2End) {
     // if the lines intersect, the result contains the x and y of the intersection (treating the lines as infinite) and booleans for whether line segment 1 or line segment 2 contain the point
     var a,
@@ -44,39 +50,21 @@ var Route = (function() {
       this.points = [];
     }
     this.distance = null;
-  }
+    this.points = clean(this.points);
+    this.updateDistance();
+  }//6395.484923814237
+   //6395.484923814237
 
   Route.prototype = {
-    createRandom: function(settings) {
-      var count = settings.count,
-        width = settings.width,
-        height = settings.height,
-        points = this.points,
-        point,
-        i = 0;
-
-      for(;i < count; i++) {
-        point = {
-          x: Math.floor(Math.random() * width),
-          y: Math.floor(Math.random() * height)
-        };
-        points.push(point);
-      }
-      return this;
-    },
     clone: function() {
-      return new Route(this.points.slice(0));
+      var route = new Route(this.points.slice(0));
+      route.distance = this.distance;
+      return this;
     },
     shuffleClone: function() {
       var array = this.points.slice(0);
       shuffle(array);
       return new Route(array);
-    },
-    clean: function() {
-      this.points = this.points.filter(function (n) {
-        return n !== null && n !== undefined;
-      });
-      return this;
     },
     updateDistance: function() {
       var sum = 0,
@@ -172,6 +160,24 @@ var Route = (function() {
 
       return sum;
     }
+  };
+
+  Route.createRandom = function(settings) {
+    var count = settings.count,
+      width = settings.width,
+      height = settings.height,
+      points = [],
+      point,
+      i = 0;
+
+    for(;i < count; i++) {
+      point = {
+        x: Math.floor(Math.random() * width),
+        y: Math.floor(Math.random() * height)
+      };
+      points.push(point);
+    }
+    return new Route(points);
   };
 
   return Route;

@@ -2,25 +2,29 @@ var Newman = (function() {
   function Newman(route) {
     var self = this;
     this.originalRoute = route;
-    this.route = route.clone();
+    this.route = route.shuffleClone();
+    this.experimentalRoute = this.route.clone();
     this.previousDistance = 999999999999999;
-    this.previousIntersects = 99999999999999999;
     this.heuristic = new idea.Heuristic({
       sequence: this.route.points,
       goal: function() {
-        self.route.points = self.heuristic.settings.sequence;
-
-        var experimentalRoute = self.route,
-          d = experimentalRoute.updateDistance().distance;
+        var experimentalRoute = self.experimentalRoute,
+          d = experimentalRoute.updateDistance().distance,
+          reward = 0;
 
         if (d < self.previousDistance) {
           self.previousDistance = d;
           self.route = experimentalRoute;
-          return self.previousDistance - d;
+          reward = 1;
         }
 
-        return 0;
+        return reward;
       }
+    });
+
+    delete this.experimentalRoute.points;
+    this.experimentalRoute.__defineGetter__('points', function() {
+      return self.heuristic.settings.sequence;
     });
   }
 

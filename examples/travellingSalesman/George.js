@@ -36,7 +36,7 @@ var George = (function() {
           newRoutePoints[newIndex] = point;
         }
 
-        self.experimentalRoute = (new Route(newRoutePoints)).clean();
+        self.experimentalRoute = new Route(newRoutePoints);
       },
       goal: function() {
         var experimentalRoute = self.experimentalRoute,

@@ -47,8 +47,11 @@ idea.Heuristic = (function() {
      */
     clone: function() {
       var settings = this.settings,
-          sequence = settings.sequence,
-          copy = new Heuristic(sequence.slice(0));
+          copy = new Heuristic({
+            sequence: settings.sequence.slice(0),
+            reward: settings.reward
+          });
+
       copy.rewards = this.rewards;
 
       return copy;

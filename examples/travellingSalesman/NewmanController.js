@@ -30,6 +30,11 @@ var NewmanController = (function() {
           rightDistance = distance(prev, right);
 
         return leftDistance < rightDistance ? left : right;
+      },
+      sort: function() {
+        this.collection.sort(function(a, b) {
+          return a.route.distance - b.route.distance;
+        });
       }
     });
   }
@@ -99,10 +104,10 @@ var NewmanController = (function() {
 
       this.mh.live(function(salesman) {
         if (self.foundShortestRoute === null) {
-          self.foundShortestRoute = salesman.route;
+          self.foundShortestRoute = salesman.route.clone();
         }
         if (salesman.route.distance < self.foundShortestRoute.distance) {
-          self.foundShortestRoute = salesman.route;
+          self.foundShortestRoute = salesman.route.clone();
         }
       }).learn();
       return this;

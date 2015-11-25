@@ -89,10 +89,10 @@ var GeorgeController = (function() {
       if (this.ticks++ < this.settings.dayTicks) {
         this.hive.live(function(salesman) {
           if (self.foundShortestRoute === null) {
-            self.foundShortestRoute = salesman.route;
+            self.foundShortestRoute = salesman.route.clone();
           }
           if (salesman.route.distance < self.foundShortestRoute.distance) {
-            self.foundShortestRoute = salesman.route;
+            self.foundShortestRoute = salesman.route.clone();
           }
         });
       } else {
