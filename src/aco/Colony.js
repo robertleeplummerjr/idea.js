@@ -51,6 +51,7 @@ aco.Colony = (function () {
         max = settings.count;
 
       this.collection = [];
+      this.iterationBest = null;
       for (; i < max; i++) {
         this.collection.push(new aco.Ant(this.graph, {
           alpha: settings.alpha,
@@ -85,7 +86,7 @@ aco.Colony = (function () {
       return this.graph.size() > 1;
     },
 
-    run: function() {
+    live: function() {
       if (!this.ready()) {
         return this;
       }
@@ -110,7 +111,7 @@ aco.Colony = (function () {
         max = collection.length;
 
       for (; i < max; i++) {
-        collection[i].run();
+        collection[i].live();
       }
 
       this.getGlobalBest();
@@ -190,6 +191,7 @@ aco.Colony = (function () {
       }
 
       if (this.iterationBest === null) {
+        this.iterationBest = best;
         for (; i < max; i++) {
           if (best.tour.updateDistance() >= collection[i].tour.updateDistance()) {
             this.iterationBest = collection[i];
@@ -203,12 +205,13 @@ aco.Colony = (function () {
     getGlobalBest: function() {
       var bestAnt = this.getIterationBest(),
         globalBest = this.globalBest;
+      
       if (bestAnt == null && globalBest == null) {
         return null;
       }
 
       if (bestAnt != null) {
-        if (globalBest == null || globalBest.tour.updateDistance() >= bestAnt.tour.updateDistance()) {
+        if (globalBest == null || bestAnt.tour.updateDistance() < globalBest.tour.distance) {
           this.globalBest = bestAnt;
         }
       }

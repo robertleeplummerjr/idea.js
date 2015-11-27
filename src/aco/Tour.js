@@ -37,27 +37,23 @@ aco.Tour = (function () {
     },
 
     updateDistance: function() {
-      if (this.distance === null) {
-        var distance = 0,
-          edge,
-          points = this.points,
-          graph = this.graph,
-          max = points.length - 1,
-          i = 0;
+      var distance = 0,
+        edge,
+        points = this.points,
+        graph = this.graph,
+        max = points.length - 1,
+        i = 0;
 
-        for (; i < max; i++) {
-          edge = graph.getEdge(points[i], points[i + 1]);
-          distance += edge.distance;
-        }
-
-        //connect last to first
-        edge = graph.getEdge(points[i], points[0]);
+      for (; i < max; i++) {
+        edge = graph.getEdge(points[i], points[i + 1]);
         distance += edge.distance;
-
-        this.distance = distance;
       }
 
-      return this.distance;
+      //connect last to first
+      edge = graph.getEdge(points[i], points[0]);
+      distance += edge.distance;
+
+      return this.distance = Math.round(distance);
     }
   };
 

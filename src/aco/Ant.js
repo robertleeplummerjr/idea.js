@@ -8,6 +8,7 @@ aco.Ant = (function () {
     this.beta = settings.beta;
     this.q = settings.q;
     this.tour = null;
+    this.index = Math.random() * 1000;
   }
 
   Ant.prototype = {
@@ -67,6 +68,8 @@ aco.Ant = (function () {
         }
       }
 
+      tour.updateDistance();
+
       return this;
     },
 
@@ -77,7 +80,7 @@ aco.Ant = (function () {
       return (this.tour.size() >= this.graph.size());
     },
 
-    run: function() {
+    live: function() {
       this.reset();
       while (!this.tourFound()) {
         this.makeNextMove();
@@ -92,8 +95,8 @@ aco.Ant = (function () {
 
       var tour = this.tour,
         graph = this.graph,
-        max = tour.size(),
-        extraPheromone = (this.q * weight) / tour.updateDistance(),
+        max = tour.size() - 1,
+        extraPheromone = (this.q * weight) / tour.distance,
         i = 0,
         fromPoint,
         toPoint,
@@ -101,20 +104,20 @@ aco.Ant = (function () {
         pheromone;
 
       for (; i < max; i++) {
-        if (i >= tour.size() - 1) {
-          fromPoint = tour.get(i);
-          toPoint = tour.get(0);
-          edge = graph.getEdge(fromPoint, toPoint);
-          pheromone = edge.pheromone;
-          edge.pheromone = pheromone + extraPheromone;
-        } else {
-          fromPoint = tour.get(i);
-          toPoint = tour.get(i + 1);
-          edge = graph.getEdge(fromPoint, toPoint);
-          pheromone = edge.pheromone;
-          edge.pheromone = pheromone + extraPheromone;
-        }
+        fromPoint = tour.points[i];
+        toPoint = tour.points[i + 1];
+        edge = graph.getEdge(fromPoint, toPoint);
+        pheromone = edge.pheromone;
+        edge.pheromone = pheromone + extraPheromone;
       }
+
+      //last
+      fromPoint = tour.points[i];
+      toPoint = tour.points[0];
+      edge = graph.getEdge(fromPoint, toPoint);
+      pheromone = edge.pheromone;
+      edge.pheromone = pheromone + extraPheromone;
+
       return this;
     }
   };

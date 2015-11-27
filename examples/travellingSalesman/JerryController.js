@@ -1,18 +1,21 @@
 var JerryController = (function() {
   function JerryController(settings) {
-    var self = this,
-      defaults = NewmanController.defaults,
+    var defaults = NewmanController.defaults,
       _settings = {},
       points,
       graph,
       max,
       point,
       i;
+
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
       _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
+
     this.settings = settings = _settings;
-    this.colony = new aco.Colony();
+    this.colony = new aco.Colony({
+      type: aco.Colony.type.maxmin
+    });
 
     points = settings.route.points;
     max = points.length;

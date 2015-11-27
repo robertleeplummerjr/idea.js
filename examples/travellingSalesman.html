@@ -104,7 +104,7 @@
     georgeDistance.innerHTML = george.foundShortestRoute.distance.toString();
     newmanDistance.innerHTML = newman.foundShortestRoute.distance.toString();
     if (jerry.colony.globalBest !== null) {
-      jerryDistance.innerHTML = jerry.colony.globalBest.tour.distance.toString();
+      jerryDistance.innerHTML = jerry.colony.globalBest.tour.updateDistance().toString();
     }
   }, 0);
 </script>
