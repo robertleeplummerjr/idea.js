@@ -9,5 +9,13 @@ idea.Ant = (function(visited, current, path) {
 
   };
 
+  Ant.defaults = {
+    sequence: [],
+    goal: null,
+    sense: function(newSequence) {
+      this.settings.sequence = newSequence;
+    }
+  };
+
   return Ant;
 })();

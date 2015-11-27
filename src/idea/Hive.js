@@ -1,10 +1,6 @@
 idea.Hive = (function(idea) {
   "use strict";
 
-  function randomResult(array) {
-    return array[Math.floor(Math.random() * (array.length - 1))];
-  }
-
   /**
    *
    * @param {Object} settings
@@ -204,7 +200,7 @@ idea.Hive = (function(idea) {
           i = 0;
 
       for (; i < max; i++) {
-        elite = randomResult(elites) || this.select();
+        elite = elites.length > 0 ? elites[Math.floor(Math.random() * (elites.length - 1))] : this.select();
         nonElite = nonElites[i];
         this.teach(elite, nonElite);
       }
