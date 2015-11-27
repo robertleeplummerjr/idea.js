@@ -1,4 +1,4 @@
-idea.Neuron = (function() {
+ann.Neuron = (function() {
   "use strict";
 
   function randomClamped() {

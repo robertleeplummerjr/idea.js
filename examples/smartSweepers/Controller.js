@@ -33,7 +33,7 @@ var Controller = (function() {
     this.fastRender = false;
     this.viewPaths = false;
 
-    this.hive = new idea.Hive({
+    this.hive = new ann.Hive({
       initType: function() {
         return new Sweeper({
           fieldWidth: settings.windowWidth,

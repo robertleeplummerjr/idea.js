@@ -1,4 +1,4 @@
-idea.NeuralNet = (function(idea) {
+ann.NeuralNet = (function(ann) {
   "use strict";
 
   /**
@@ -38,16 +38,16 @@ idea.NeuralNet = (function(idea) {
       //create the layers of the network
       if (settings.hiddenLayerCount > 0) {
         //create first hidden layer
-        layers.push(new idea.NeuronLayer(settings.hiddenLayerNeuronCount, settings.inputCount));
+        layers.push(new ann.NeuronLayer(settings.hiddenLayerNeuronCount, settings.inputCount));
         for (; i < max; i++) {
-          layers.push(new idea.NeuronLayer(settings.hiddenLayerNeuronCount, settings.hiddenLayerNeuronCount));
+          layers.push(new ann.NeuronLayer(settings.hiddenLayerNeuronCount, settings.hiddenLayerNeuronCount));
         }
 
         //create output layer
-        layers.push(new idea.NeuronLayer(settings.outputCount, settings.hiddenLayerNeuronCount));
+        layers.push(new ann.NeuronLayer(settings.outputCount, settings.hiddenLayerNeuronCount));
       } else {
         //create output layer
-        layers.push(new idea.NeuronLayer(settings.outputCount, settings.inputCount));
+        layers.push(new ann.NeuronLayer(settings.outputCount, settings.inputCount));
       }
 
       return this;
@@ -67,7 +67,7 @@ idea.NeuralNet = (function(idea) {
         weights.push(Math.random() - Math.random());
       }
 
-      this.wisdom = new idea.Wisdom(weights, settings.maxPerturbation);
+      this.wisdom = new ann.Wisdom(weights, settings.maxPerturbation);
       this.putWeights(weights);
 
       return this;
@@ -271,4 +271,4 @@ idea.NeuralNet = (function(idea) {
   };
 
   return NeuralNet;
-})(idea);
+})(ann);

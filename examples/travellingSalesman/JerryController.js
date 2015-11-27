@@ -1,6 +1,6 @@
 var JerryController = (function() {
-  function JerryController() {
-
+  function JerryController(settings) {
+    this.aco = new aco.Colony();
   }
 
   return JerryController;

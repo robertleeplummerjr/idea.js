@@ -1,4 +1,4 @@
-var Sweeper = (function(idea) {
+var Sweeper = (function(ann) {
   "use strict";
 
   function clamp(arg, min, max) {
@@ -35,7 +35,7 @@ var Sweeper = (function(idea) {
     this.scale = Sweeper.config.scale;
     this.closestMine = null;
     this.closestSweeper = null;
-    this.brain = new idea.NeuralNet({
+    this.brain = new ann.NeuralNet({
       bias: config.neuralNetBias,
       inputCount: config.neuralNetInputCount,
       outputCount: config.neuralNetOutputCount,
@@ -239,4 +239,4 @@ var Sweeper = (function(idea) {
   };
 
   return Sweeper;
-})(idea);
+})(ann);

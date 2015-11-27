@@ -1,4 +1,4 @@
-idea.Wisdom = (function(idea) {
+ann.Wisdom = (function(ann) {
   "use strict";
 
   /**
@@ -37,4 +37,4 @@ idea.Wisdom = (function(idea) {
   };
 
   return Wisdom;
-})(idea);
+})(ann);

@@ -1,4 +1,4 @@
-idea.Heuristic = (function() {
+mh.Heuristic = (function() {
 
   function swap(array, x, y) {
     if(x > array.length || y > array.length || x === y) {

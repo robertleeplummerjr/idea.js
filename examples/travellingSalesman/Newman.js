@@ -5,7 +5,7 @@ var Newman = (function() {
     this.route = route.shuffleClone();
     this.experimentalRoute = this.route.clone();
     this.previousDistance = 999999999999999;
-    this.heuristic = new idea.Heuristic({
+    this.heuristic = new mh.Heuristic({
       sequence: this.route.points,
       goal: function() {
         var experimentalRoute = self.experimentalRoute,

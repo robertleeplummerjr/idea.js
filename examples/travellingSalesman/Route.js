@@ -108,21 +108,12 @@ var Route = (function() {
         flat = [];
 
       for (; i < max; i++) {
+        distance = distances[i];
         point = points[i];
         flat.push(point.x);
         flat.push(point.y);
-        flat.push(i);
-      }
-
-      i = 0;
-      max = distances.length;
-
-      for (; i < max; i++) {
-        distance = distances[i];
         flat.push(distance);
       }
-
-      flat.push(this.intersectCount());
       return flat;
     },
     anyPoint: function() {

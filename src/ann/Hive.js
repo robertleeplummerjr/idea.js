@@ -1,4 +1,4 @@
-idea.Hive = (function(idea) {
+ann.Hive = (function(ann) {
   "use strict";
 
   /**
@@ -41,7 +41,7 @@ idea.Hive = (function(idea) {
      */
     teach: function(teacher, student) {
       var i = 0,
-          studentWisdom = new idea.Wisdom([], this.settings.maxPerturbation),
+          studentWisdom = new ann.Wisdom([], this.settings.maxPerturbation),
           teacherWisdom = teacher.brain.wisdom,
           weights = teacher.brain.wisdom.weights,
           crossoverPoint,
@@ -75,7 +75,7 @@ idea.Hive = (function(idea) {
     // Maybe switch this out with Tournament selection?
     /**
      *
-     * @returns {idea.Wisdom}
+     * @returns {ann.Wisdom}
      */
     select: function() {
       var slice = Math.random() * this.totalRewards,
@@ -262,4 +262,4 @@ idea.Hive = (function(idea) {
   };
 
   return Hive;
-})(idea);
+})(ann);

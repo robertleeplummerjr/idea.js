@@ -1,7 +1,7 @@
 /**
  * meta heuristic / genetic algorithm
  */
-idea.MetaHeuristic = (function() {
+mh.MetaHeuristic = (function() {
   function nextIn(array, index) {
     index++;
     if(index >= array.length) {

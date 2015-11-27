@@ -7,14 +7,14 @@ var George = (function() {
     this.previousDistance = 999999999999999;
     this.experimentalRoute = null;
     this.previousIntersects = 99999999999999999;
-    this.brain = new idea.NeuralNet({
+    this.brain = new ann.NeuralNet({
       inputCount: this.originalRouteFlattened.length,
       outputCount: route.points.length,
       bias: -1,
-      hiddenLayerCount: 1,
+      hiddenLayerCount: 3,
       hiddenLayerNeuronCount: this.originalRouteFlattened.length * 2,
       activationResponse: 1,
-      maxPerturbation:.1,
+      maxPerturbation:.9,
       sense: function() {
         return (self.experimentalRoute || self.route).flatten();
       },
@@ -41,17 +41,15 @@ var George = (function() {
       goal: function() {
         var experimentalRoute = self.experimentalRoute,
             d = experimentalRoute.updateDistance().distance,
-            count = experimentalRoute.intersectCount(),
             reward = 0;
 
         if (d < self.previousDistance) {
+          reward += 1 / (self.previousDistance - d);
           self.previousDistance = d;
           self.route = experimentalRoute;
           reward++;
-        }
-
-        if (count < self.previousIntersects) {
-          reward++;
+        } else if (d > self.previousDistance) {
+          reward -= 1 / (self.previousDistance - d);
         }
 
         return reward;
