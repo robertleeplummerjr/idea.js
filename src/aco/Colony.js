@@ -4,13 +4,14 @@ aco.Colony = (function () {
   function Colony(settings) {
     settings = settings || {};
     this.graph = new aco.Graph();
-    this.colony = [];
+    this.collection = [];
 
     var _settings = {},
       defaults = Colony.defaults,
       i;
+
     for (i in defaults) if (defaults.hasOwnProperty(i)) {
-      _settings[i] = settings.hasOwnProperty(i) ? settings[i] : _settings[i];
+      _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
     }
 
     this.settings = _settings;
@@ -20,7 +21,7 @@ aco.Colony = (function () {
     this.iterationBest = null;
     this.globalBest = null;
 
-    this.createAnts();
+    this.fill();
   }
 
   Colony.type = {
@@ -30,7 +31,7 @@ aco.Colony = (function () {
   };
 
   Colony.defaults = {
-    colonySize: 20,
+    count: 20,
     alpha: 1,
     beta: 3,
     rho: 0.1,
@@ -43,15 +44,15 @@ aco.Colony = (function () {
   };
 
   Colony.prototype = {
-    size: function() { return this.colony.length; },
-    createAnts: function() {
+    size: function() { return this.collection.length; },
+    fill: function() {
       var i = 0,
         settings = this.settings,
-        max = settings.colonySize;
+        max = settings.count;
 
-      this.colony = [];
+      this.collection = [];
       for (; i < max; i++) {
-        this.colony.push(new aco.Ant(this.graph, {
+        this.collection.push(new aco.Ant(this.graph, {
           alpha: settings.alpha,
           beta: settings.beta,
           q: settings.q
@@ -63,7 +64,8 @@ aco.Colony = (function () {
     reset: function() {
       this.iteration = 0;
       this.globalBest = null;
-      this.resetAnts();
+      this.fill();
+      this.iterationBest = null;
       this.graph.resetPheromone();
       return this;
     },
@@ -76,12 +78,6 @@ aco.Colony = (function () {
       for (i in edges) if (edges.hasOwnProperty(i)) {
         edges[i].initPheromone = initPheromone;
       }
-      return this;
-    },
-
-    resetAnts: function() {
-      this.createAnts();
-      this.iterationBest = null;
       return this;
     },
 
@@ -103,17 +99,18 @@ aco.Colony = (function () {
     },
 
     step: function() {
-      if (!this.ready() || this.iteration >= this.settings.maxIterations) {
+      if (!this.ready()) {
         return this;
       }
 
-      this.resetAnts();
+      this.fill();
 
-      var i,
-        colony = this.colony;
+      var i = 0,
+        collection = this.collection,
+        max = collection.length;
 
-      for (i in colony) if (colony.hasOwnProperty(i)) {
-        colony[i].run();
+      for (; i < max; i++) {
+        collection[i].run();
       }
 
       this.getGlobalBest();
@@ -125,21 +122,25 @@ aco.Colony = (function () {
 
     updatePheromone: function() {
       var edges = this.graph.edges,
+        edge,
         settings = this.settings,
         rho = settings.rho,
         q = settings.q,
         type = settings.type,
         maxIterations = settings.maxIterations,
         minScalingFactor = settings.minScalingFactor,
-        colony = this.colony,
+        collection = this.collection,
+        j = 0,
+        max = collection.length,
         elitistWeight = this.elitistWeight,
         pheromone,
         best,
         i;
 
       for (i in edges) if (edges.hasOwnProperty(i)) {
-        pheromone = edges[i].pheromone;
-        edges[i].pheromone = pheromone * (1 - rho);
+        edge = edges[i];
+        pheromone = edge.pheromone;
+        edge.pheromone = pheromone * (1 - rho);
       }
 
       if (type === Colony.type.maxmin) {
@@ -150,13 +151,13 @@ aco.Colony = (function () {
         }
 
         // Set maxmin
-        this.maxPheromone = q / best.getTour().updateDistance();
+        this.maxPheromone = q / best.tour.updateDistance();
         this.minPheromone = this.maxPheromone * minScalingFactor;
 
         best.addPheromone();
       } else {
-        for (i in colony) if (colony.hasOwnProperty(i)) {
-          colony[i].addPheromone();
+        for (; i < max; i++) {
+          collection[i].addPheromone();
         }
       }
 
@@ -166,11 +167,12 @@ aco.Colony = (function () {
 
       if (type === Colony.type.maxmin) {
         for (i in edges) if (edges.hasOwnProperty(i)) {
-          pheromone = edges[i].pheromone;
+          edge = edges[i];
+          pheromone = edge.pheromone;
           if (pheromone > this.maxPheromone) {
-            edges[i].pheromone = this.maxPheromone;
+            edge.pheromone = this.maxPheromone;
           } else if (pheromone < this.minPheromone) {
-            edges[i].pheromone = this.minPheromone;
+            edge.pheromone = this.minPheromone;
           }
         }
       }
@@ -178,18 +180,19 @@ aco.Colony = (function () {
     },
 
     getIterationBest: function() {
-      if (this.colony[0].getTour() == null) {
+      var collection = this.collection,
+        max = collection.length,
+        best = collection[0],
+        i = 0;
+
+      if (best.tour === null) {
         return null;
       }
 
-      if (this.iterationBest == null) {
-        var colony = this.colony,
-          best = colony[0],
-          i;
-
-        for (i in colony) if (colony.hasOwnProperty(i)) {
-          if (best.getTour().distance() >= this.colony[i].getTour().updateDistance()) {
-            this.iterationBest = this.colony[i];
+      if (this.iterationBest === null) {
+        for (; i < max; i++) {
+          if (best.tour.updateDistance() >= collection[i].tour.updateDistance()) {
+            this.iterationBest = collection[i];
           }
         }
       }
@@ -198,14 +201,14 @@ aco.Colony = (function () {
     },
 
     getGlobalBest: function() {
-      var bestAnt = this.getIterationBest();
-
-      if (bestAnt == null && this.globalBest == null) {
+      var bestAnt = this.getIterationBest(),
+        globalBest = this.globalBest;
+      if (bestAnt == null && globalBest == null) {
         return null;
       }
 
       if (bestAnt != null) {
-        if (this.globalBest == null || this.globalBest.getTour().updateDistance() >= bestAnt.getTour().updateDistance()) {
+        if (globalBest == null || globalBest.tour.updateDistance() >= bestAnt.tour.updateDistance()) {
           this.globalBest = bestAnt;
         }
       }

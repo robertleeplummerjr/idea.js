@@ -22,16 +22,26 @@
 <script src="../src/mh/MetaHeuristic.js"></script>
 <script src="../src/mh/Heuristic.js"></script>
 
+<script src="../src/aco/base.js"></script>
+<script src="../src/aco/Ant.js"></script>
+<script src="../src/aco/Colony.js"></script>
+<script src="../src/aco/Edge.js"></script>
+<script src="../src/aco/Graph.js"></script>
+<script src="../src/aco/Point.js"></script>
+<script src="../src/aco/Tour.js"></script>
+
 <script src="travellingSalesman/George.js"></script>
 <script src="travellingSalesman/GeorgeController.js"></script>
 <script src="travellingSalesman/Newman.js"></script>
 <script src="travellingSalesman/NewmanController.js"></script>
+<script src="travellingSalesman/JerryController.js"></script>
 
 <script src="travellingSalesman/Route.js"></script>
 <script>
   var canvas = document.getElementById('canvas'),
       georgeDistance = document.getElementById('georgeDistance'),
       newmanDistance = document.getElementById('newmanDistance'),
+      jerryDistance = document.getElementById('jerryDistance'),
       ctx = canvas.getContext('2d'),
       width = canvas.width = window.innerWidth * 0.8,
       height = canvas.height = window.innerHeight * 0.8,
@@ -51,23 +61,51 @@
         width: width,
         height: height,
         route: route
-      })/*,
+      }),
       jerry = new JerryController({
         ctx: ctx,
         width: width,
-        height: height
-      })*/;
+        height: height,
+        route: route
+      });
 
   setInterval(function() {
+    //draw background;
+    ctx.clearRect(0, 0, width, height);
+    ctx.beginPath();
+    ctx.rect(0, 0, width, height);
+    ctx.fillStyle = 'rgb(32, 36, 45)';
+    ctx.fill();
+
+    //draw points
+    var points = route.points,
+        point,
+        i = 0,
+        max = points.length;
+
+    ctx.strokeStyle = 'rgb(255, 45, 3)';
+    for (; i < max; i++) {
+      point = points[i];
+      ctx.beginPath();
+      ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+
     george
         .update()
-        .render(true);
+        .drawRoute();
     newman
         .update()
-        .render();
-    //jerry.update();
+        .drawRoute();
+    jerry
+        .update()
+        .drawRoute();
+
     georgeDistance.innerHTML = george.foundShortestRoute.distance.toString();
     newmanDistance.innerHTML = newman.foundShortestRoute.distance.toString();
+    if (jerry.colony.globalBest !== null) {
+      jerryDistance.innerHTML = jerry.colony.globalBest.tour.distance.toString();
+    }
   }, 0);
 </script>
 </html>

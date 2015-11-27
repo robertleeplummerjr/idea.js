@@ -11,7 +11,7 @@ aco.Point = (function () {
       return this.x + ',' + this.y;
     },
     isEqual: function(point) {
-      return (this.x == point.x && this.y == point.y);
+      return (this.x === point.x && this.y === point.y);
     }
   };
 

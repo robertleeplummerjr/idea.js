@@ -14,9 +14,11 @@ aco.Tour = (function () {
 
     contains: function(point) {
       var points = this.points,
-        i;
-      for (i in points) if (points.hasOwnProperty(i)) {
-        if (point.isEqual(this.points[i])) {
+        max = points.length,
+        i = 0;
+
+      for (; i < max; i++) {
+        if (point.isEqual(points[i])) {
           return true;
         }
       }
@@ -24,7 +26,7 @@ aco.Tour = (function () {
       return false;
     },
 
-    add: function(point) {
+    addPoint: function(point) {
       this.distance = null;
       this.points.push(point);
       return this;

@@ -24,12 +24,8 @@ aco.Ant = (function () {
       return this;
     },
 
-    getTour: function() {
-      return this.tour;
-    },
-
     makeNextMove: function() {
-      if (this.tour == null) {
+      if (this.tour === null) {
         this.init();
       }
 
@@ -42,14 +38,15 @@ aco.Ant = (function () {
         finalPheromoneWeight,
         edge,
         i,
+        max = points.length,
         pointProbabilities = [],
         wheelTarget = rouletteWheel * Math.random(),
         wheelPosition = 0.0;
 
-      for (i in points) if (points.hasOwnProperty(i)) {
+      for (i = 0; i < max; i++) {
         if (!tour.contains(points[i])) {
           edge = graph.getEdge(this.currentPoint, points[i]);
-          if (alpha == 1) {
+          if (alpha === 1) {
             finalPheromoneWeight = edge.pheromone;
           } else {
             finalPheromoneWeight = Math.pow(edge.pheromone, alpha);
@@ -59,7 +56,7 @@ aco.Ant = (function () {
         }
       }
 
-      for (i in points) if (points.hasOwnProperty(i)) {
+      for (i = 0; i < max; i++) {
         if (!tour.contains(points[i])) {
           wheelPosition += pointProbabilities[i];
           if (wheelPosition >= wheelTarget) {
@@ -74,7 +71,7 @@ aco.Ant = (function () {
     },
 
     tourFound: function() {
-      if (this.tour == null) {
+      if (this.tour === null) {
         return false;
       }
       return (this.tour.size() >= this.graph.size());
@@ -89,14 +86,14 @@ aco.Ant = (function () {
     },
 
     addPheromone: function(weight) {
-      if (weight == undefined) {
+      if (weight === undefined) {
         weight = 1;
       }
 
-      var extraPheromone = (this.q * weight) / this.tour.updateDistance(),
-        tour = this.tour,
+      var tour = this.tour,
         graph = this.graph,
         max = tour.size(),
+        extraPheromone = (this.q * weight) / tour.updateDistance(),
         i = 0,
         fromPoint,
         toPoint,
