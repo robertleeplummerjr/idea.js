@@ -21,8 +21,8 @@ var brain = new idea.NueralNet({
     //return goal response here, greater than 0 is a reward.  0 or less is discipline
     return 1;
   },
-  action: function() {
-    //what happens next?
+  action: function(outputs) {
+    //what happens next?  Do something with outputs...
   }
 });
 
