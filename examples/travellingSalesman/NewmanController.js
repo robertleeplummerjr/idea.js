@@ -20,7 +20,7 @@ var NewmanController = (function() {
     this.ticks = 0;
     this.foundShortestRoute = null;
     this.distances = null;
-    this.mh = new mh.MetaHeuristic({
+    this.mh = new idea.MetaHeuristic({
       count: settings.count,
       initType: function() {
         return new Newman(self.settings.route);

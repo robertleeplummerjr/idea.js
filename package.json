@@ -26,6 +26,11 @@
   "homepage": "https://github.com/robertleeplummerjr/idea.js#readme",
   "devDependencies": {
     "gulp": "^3.9.0",
-    "gulp-concat": "^2.6.0"
+    "gulp-concat": "^2.6.0",
+    "karma": "^0.13.22",
+    "should": "^8.3.1"
+  },
+  "dependencies": {
+    "karma-should": "^1.0.0"
   }
 }

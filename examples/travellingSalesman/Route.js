@@ -62,7 +62,7 @@ var Route = (function() {
     },
     shuffleClone: function() {
       var array = this.points.slice(0);
-      shuffle(array);
+      idea.shuffle(array);
       return new Route(array);
     },
     updateDistance: function() {

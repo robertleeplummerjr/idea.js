@@ -33,7 +33,7 @@ var Controller = (function() {
     this.fastRender = false;
     this.viewPaths = false;
 
-    this.hive = new ann.Hive({
+    this.hive = new idea.Hive({
       initType: function() {
         return new Sweeper({
           fieldWidth: settings.windowWidth,
@@ -42,7 +42,8 @@ var Controller = (function() {
             var i = self.mines.indexOf(mine);
             self.mines[i] = new Mine(Math.random() * settings.windowWidth, Math.random() * settings.windowHeight);
           },
-          mines: self.mines
+          mines: self.mines,
+          crossoverRate: 0.7
         });
       },
       count: settings.numSweepers
@@ -212,13 +213,22 @@ var Controller = (function() {
       },
 
       beginNewDay: function() {
+        var sweepers = this.hive.collection;
         this.hive.calcStats();
-        this.avgMinesHistory.push(this.avgMines = this.hive.avgRewards);
-        this.bestMinesHistory.push(this.bestMines = this.hive.bestRewards);
+        this.avgMinesHistory.push(this.avgMines = sweepers.reduce(function(prev, curr) {
+          return prev + curr.hitsToday;
+        }, 0) / sweepers.length);
+        this.bestMinesHistory.push(this.bestMines = sweepers.reduce(function(prev, curr) {
+          return prev > curr.hitsToday ? prev : curr.hitsToday;
+        }, 0));
 
         this.hive
           .learn()
           .resetStats();
+
+        sweepers.forEach(function(sweeper) {
+          sweeper.hitsToday = 0;
+        });
 
         this.day++;
         this.ticks = 0;

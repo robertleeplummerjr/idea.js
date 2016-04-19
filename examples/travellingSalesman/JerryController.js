@@ -8,13 +8,15 @@ var JerryController = (function() {
       point,
       i;
 
-    for (i in defaults) if (defaults.hasOwnProperty(i)) {
-      _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
+    for (i in defaults) {
+      if (defaults.hasOwnProperty(i)) {
+        _settings[i] = settings.hasOwnProperty(i) ? settings[i] : defaults[i];
+      }
     }
 
     this.settings = settings = _settings;
-    this.colony = new aco.Colony({
-      type: aco.Colony.type.maxmin
+    this.colony = new idea.Colony({
+      strategy: idea.Colony.maxminStrategy
     });
 
     points = settings.route.points;

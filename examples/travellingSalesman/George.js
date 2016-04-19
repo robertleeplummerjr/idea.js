@@ -7,7 +7,7 @@ var George = (function() {
     this.previousDistance = 999999999999999;
     this.experimentalRoute = null;
     this.previousIntersects = 99999999999999999;
-    this.brain = new ann.NeuralNet({
+    this.brain = new idea.Net({
       inputCount: this.originalRouteFlattened.length,
       outputCount: route.points.length,
       bias: -1,

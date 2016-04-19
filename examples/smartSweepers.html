@@ -56,12 +56,7 @@
     }
   </style>
 
-  <script src="../src/ann/base.js"></script>
-  <script src="../src/ann/Hive.js"></script>
-  <script src="../src/ann/NeuralNet.js"></script>
-  <script src="../src/ann/Neuron.js"></script>
-  <script src="../src/ann/NeuronLayer.js"></script>
-  <script src="../src/ann/Wisdom.js"></script>
+  <script src="../idea.js"></script>
 
   <script src="smartSweepers/Matrix2d.js"></script>
   <script src="smartSweepers/Point.js"></script>
@@ -242,8 +237,9 @@
         tableEl = document.getElementById('stats-table');
 
     dayEl.innerHTML = controller.day.toString();
-    bestEl.innerHTML = controller.bestMines.toString();
+    bestEl.innerHTML = controller.bestMines.toFixed(2);
     avgEl.innerHTML = controller.avgMines.toFixed(2);
+
 
     rowEl.appendChild(dayEl);
     rowEl.appendChild(bestEl);

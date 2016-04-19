@@ -14,7 +14,7 @@ var GeorgeController = (function() {
     this.ticks = 0;
     this.distances = null;
     this.foundShortestRoute = null;
-    this.hive = new ann.Hive({
+    this.hive = new idea.Hive({
       count: settings.count,
       initType: function() {
         return new George(settings.route);
