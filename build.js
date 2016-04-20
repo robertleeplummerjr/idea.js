@@ -10,7 +10,7 @@ fs.writeFileSync('idea.js', fs.readFileSync('./src/package.js').toString()
         './src/colony/tour',
 
         './src/hive',
-        './src/hive/net',
+        './src/hive/neural-net',
         './src/hive/neuron',
         './src/hive/synapses',
         './src/hive/wisdom',

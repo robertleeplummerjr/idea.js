@@ -6,8 +6,8 @@ var Synapses = require('synapses'),
  * @param {Object} settings
  * @constructor
  */
-function Net(settings) {
-  var defaults = Net.defaults,
+function NeuralNet(settings) {
+  var defaults = NeuralNet.defaults,
     i,
     _settings = {};
 
@@ -21,16 +21,16 @@ function Net(settings) {
   this.wisdom = null;
 
   this
-    .createNet()
+    .connect()
     .createWisdom();
 }
 
-Net.prototype = {
+NeuralNet.prototype = {
   /**
    * this method builds the a NN. The weights are all initially set to random values between -1 and 1
-   * @returns {Net}
+   * @returns {NeuralNet}
    */
-  createNet: function () {
+  connect: function () {
     var settings = this.settings,
       max = settings.hiddenLayerCount - 1,
       i = 0,
@@ -56,7 +56,7 @@ Net.prototype = {
 
   /**
    *
-   * @returns {Net}
+   * @returns {NeuralNet}
    */
   createWisdom: function () {
     var settings = this.settings,
@@ -112,7 +112,7 @@ Net.prototype = {
   /**
    * replaces the weights in the NN with the new values
    * @param {number[]} [weights]
-   * @returns {Net}
+   * @returns {NeuralNet}
    */
   putWeights: function (weights) {
     weights = weights || this.wisdom.weights;
@@ -175,7 +175,7 @@ Net.prototype = {
 
   /**
    * causes a chain reaction of analysis (neural net processing) of senses (inputs), which causes an action (outputs) and potentially a reward
-   * @returns {Net}
+   * @returns {NeuralNet}
    */
   think: function () {
     var settings = this.settings,
@@ -259,7 +259,7 @@ Net.prototype = {
   }
 };
 
-Net.defaults = {
+NeuralNet.defaults = {
   bias: -1,
   inputCount: 2,
   outputCount: 2,
@@ -273,4 +273,4 @@ Net.defaults = {
   action: null
 };
 
-module.exports = Net;
+module.exports = NeuralNet;

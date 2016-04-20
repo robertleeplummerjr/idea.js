@@ -41,7 +41,7 @@ var Sweeper = (function (idea) {
     this.scale = Sweeper.config.scale;
     this.closestMine = null;
     this.closestSweeper = null;
-    this.brain = new idea.Net({
+    this.brain = new idea.NeuralNet({
       bias: config.neuralNetBias,
       inputCount: config.neuralNetInputCount,
       outputCount: config.neuralNetOutputCount,

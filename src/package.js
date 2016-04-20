@@ -12,7 +12,7 @@ var idea = (function() {
     Tour: Tour,
 
     Hive: Hive,
-    Net: Net,
+    NeuralNet: NeuralNet,
     Neuron: Neuron,
     Synapses: Synapses,
     Wisdom: Wisdom,
