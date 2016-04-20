@@ -7,6 +7,10 @@ Machine Learning doesn't have to be complicated.  idea.js makes AI's (neural net
 ## How?
 By telling idea.js what you want to do, it figures out how to do it.
 
+## Demos:
+Smart Sweepers: http://robertleeplummerjr.github.io/idea.js/examples/smartSweepers.html
+Travelling Salesman: http://robertleeplummerjr.github.io/idea.js/examples/travellingSalesman.html
+
 ## Example:
 By giving the machine rewards for reaching closer and closer to a goal it gets smarter.
 
