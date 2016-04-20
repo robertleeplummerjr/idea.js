@@ -1,6 +1,6 @@
 var JerryController = (function() {
   function JerryController(settings) {
-    var defaults = NewmanController.defaults,
+    var defaults = JerryController.defaults,
       _settings = {},
       points,
       graph,
@@ -16,7 +16,8 @@ var JerryController = (function() {
 
     this.settings = settings = _settings;
     this.colony = new idea.Colony({
-      strategy: idea.Colony.maxminStrategy
+      strategy: idea.Colony.maxminStrategy,
+      Type: Jerry
     });
 
     points = settings.route.points;

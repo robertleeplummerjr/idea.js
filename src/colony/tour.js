@@ -31,10 +31,6 @@ Tour.prototype = {
     return this;
   },
 
-  get: function(i) {
-    return this.points[i];
-  },
-
   updateDistance: function() {
     var distance = 0,
       edge,

@@ -42,7 +42,7 @@ Ant.prototype = {
       i,
       max = points.length,
       pointProbabilities = [],
-      wheelTarget = rouletteWheel * Math.random(),
+      wheelTarget,
       wheelPosition = 0.0;
 
     for (i = 0; i < max; i++) {
@@ -58,18 +58,19 @@ Ant.prototype = {
       }
     }
 
+    wheelTarget = rouletteWheel * Math.random();
+
     for (i = 0; i < max; i++) {
       if (!tour.contains(points[i])) {
         wheelPosition += pointProbabilities[i];
         if (wheelPosition >= wheelTarget) {
           this.currentPoint = points[i];
           tour.addPoint(points[i]);
+          tour.updateDistance();
           return this;
         }
       }
     }
-
-    tour.updateDistance();
 
     return this;
   },

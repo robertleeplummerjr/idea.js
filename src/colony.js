@@ -101,9 +101,7 @@ Colony.prototype = {
   },
 
   step: function() {
-    if (!this.ready()) {
-      return this;
-    }
+    if (!this.ready()) return this;
 
     this.fill();
 
@@ -115,8 +113,9 @@ Colony.prototype = {
       collection[i].live();
     }
 
-    this.getGlobalBest();
-    this.updatePheromone();
+    this
+      .updateGlobalBest()
+      .updatePheromone();
 
     this.iteration++;
     return this;
@@ -148,7 +147,7 @@ Colony.prototype = {
     switch (strategy) {
       case Colony.maxminStrategy:
         if ((this.iteration / maxIterations) > 0.75) {
-          best = this.getGlobalBest();
+          best = this.globalBest;
         } else {
           best = this.getIterationBest();
         }
@@ -170,7 +169,7 @@ Colony.prototype = {
         }
         return this;
       case Colony.elitistStrategy:
-        this.getGlobalBest().addPheromone(elitistWeight);
+        this.globalBest.addPheromone(elitistWeight);
       default:
         collection.forEach(function(resident) {
           resident.addPheromone();
@@ -202,19 +201,17 @@ Colony.prototype = {
     return this.iterationBest;
   },
 
-  getGlobalBest: function() {
-    var best = this.getIterationBest(),
-      globalBest = this.globalBest;
+  updateGlobalBest: function() {
+    var best = this.getIterationBest();
 
-    if (best === null && globalBest === null) return null;
-    if (best === null) return globalBest;
+    if (best === null && this.globalBest === null) return this;
+    if (best === null) return this;
 
-    if (globalBest === null || best.tour.updateDistance() < globalBest.tour.distance) {
+    if (this.globalBest === null || best.tour.updateDistance() < this.globalBest.tour.distance) {
       this.globalBest = best;
     }
 
-
-    return this.globalBest;
+    return this;
   }
 };
 

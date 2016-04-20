@@ -1,7 +1,1 @@
-var Jerry = (function() {
-  function Jerry(route) {
-
-  }
-
-  return Jerry;
-})();
+var Jerry = idea.Ant;
